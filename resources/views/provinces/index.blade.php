@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="row mt-4">
-        <h4 class="mb-4"><i class="bi bi-geo-alt me-2"></i>ຈັດການຂໍ້ມູນການເລື່ອນຊັ້ນ</h4>
+        <h4 class="mb-4"><i class="bi bi-geo-alt me-2"></i>ຈັດການຂໍ້ມູນແຂວງ</h4>
         <div class="card">
             <div class="card-header">
                 <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap py-2 px-3">

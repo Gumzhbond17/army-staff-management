@@ -20,7 +20,7 @@ class WorkingStatusController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:units,name',
+            'name' => 'required|string|max:255|unique:working_statuses,name', // ✅ fixed table name
         ]);
 
         WorkingStatus::create([
@@ -34,13 +34,13 @@ class WorkingStatusController extends Controller
             ->with('success', 'ເພີ່ມຂໍ້ມູນສຳເລັດແລ້ວ');
     }
 
-    public function update(Request $request, WorkingStatus $workStatus)
+    public function update(Request $request, WorkingStatus $workingStatus) // ✅ fixed parameter
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:units,name,'.$workStatus->id,
+            'name' => 'required|string|max:255|unique:working_statuses,name,'.$workingStatus->id, // ✅ fixed table name
         ]);
 
-        $workStatus->update([
+        $workingStatus->update([
             'name' => $request->name,
             'is_active' => $request->boolean('is_active'),
             'updated_by' => 1,
@@ -50,9 +50,9 @@ class WorkingStatusController extends Controller
             ->with('success', 'ແກ້ໄຂຂໍ້ມູນສຳເລັດແລ້ວ');
     }
 
-    public function destroy(WorkingStatus $workStatus)
+    public function destroy(WorkingStatus $workingStatus) // ✅ fixed parameter
     {
-        $workStatus->delete();
+        $workingStatus->delete();
 
         return redirect()->route('working-statuses.index')
             ->with('success', 'ລຶບຂໍ້ມູນສຳເລັດແລ້ວ');

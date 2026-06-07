@@ -95,11 +95,15 @@
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="#">
-                                <i class="bi bi-box-arrow-right me-1"></i>
-                                ອອກຈາກລະບົບ
+                            <a class="dropdown-item text-danger" href="#"
+                                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                <i class="bi bi-box-arrow-right me-1"></i>ອອກຈາກລະບົບ
                             </a>
                         </li>
+                        {{-- Hidden logout form (place anywhere outside the nav) --}}
+                        <form id="logout-form" method="POST" action="{{ route('logout') }}" class="d-none">
+                            @csrf
+                        </form>
                     </ul>
                 </li>
             </ul>

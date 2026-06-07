@@ -113,15 +113,15 @@
     {{-- ══════════════════════════════════════════
          MODAL — Create / Edit
     ══════════════════════════════════════════ --}}
-    <div class="modal fade" id="rankModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="workingModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <form id="rankForm" method="POST" action="">
+                <form id="workingForm" method="POST" action="">
                     @csrf
                     <input type="hidden" name="_method" id="formMethod" value="POST">
 
                     <div class="modal-header">
-                        <h5 class="modal-title" id="rankModalLabel"></h5>
+                        <h5 class="modal-title" id="workingModalLabel"></h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
 
@@ -190,19 +190,19 @@
         waitForBootstrap(function () {
 
             // ── Refs ─────────────────────────────────────────────────
-            var modalEl     = document.getElementById('rankModal');
-            var rankForm    = document.getElementById('rankForm');
+            var modalEl     = document.getElementById('workingModal');
+            var workingForm    = document.getElementById('workingForm');
             var formMethod  = document.getElementById('formMethod');
             var inputName   = document.getElementById('inputName');
             var inputActive = document.getElementById('inputIsActive');
-            var labelTitle  = document.getElementById('rankModalLabel');
+            var labelTitle  = document.getElementById('workingModalLabel');
             var deleteForm  = document.getElementById('deleteForm');
             var bsModal     = new bootstrap.Modal(modalEl);
 
             // ── Open CREATE ───────────────────────────────────────────
             document.getElementById('btnCreate').addEventListener('click', function () {
                 labelTitle.innerHTML = '<i class="bi bi-plus-circle me-2"></i>ເພີ່ມຂໍ້ມູນ';
-                rankForm.action      = "{{ route('working-statuses.store') }}";
+                workingForm.action      = "{{ route('working-statuses.store') }}";
                 formMethod.value     = 'POST';
                 inputName.value      = '';
                 inputActive.checked  = true;
@@ -215,7 +215,7 @@
                 if (!btn) return;
 
                 labelTitle.innerHTML = '<i class="bi bi-pencil me-2"></i>ແກ້ໄຂຂໍ້ມູນ';
-                rankForm.action      = btn.getAttribute('data-url');
+                workingForm.action      = btn.getAttribute('data-url');
                 formMethod.value     = 'PUT';
                 inputName.value      = btn.getAttribute('data-name');
                 inputActive.checked  = btn.getAttribute('data-active') === '1';
