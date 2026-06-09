@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RankController;
 use App\Http\Controllers\StaffCategoryController;
@@ -38,6 +39,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('ranks', RankController::class);
     Route::resource('units', UnitController::class);
     Route::resource('provinces', ProvinceController::class);
+    Route::apiResource('districts', DistrictController::class);
     Route::resource('staff-categories', StaffCategoryController::class);
     Route::resource('working-statuses', WorkingStatusController::class);
 });

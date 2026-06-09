@@ -58,7 +58,7 @@
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="#">
+                            <a class="dropdown-item" href="{{ URL('districts') }}">
                                 <i class="bi bi-geo me-1"></i>
                                 ຂໍ້ມູນເມືອງ
                             </a>

@@ -15,7 +15,14 @@ export default defineConfig({
             // ],
         }),
         // tailwindcss(),
+
     ],
+    optimizeDeps: {
+        include: ['jquery', 'select2'],
+    },
+    define: {
+        global: 'window',
+    },
     server: {
         watch: {
             ignored: ["**/storage/framework/views/**"],

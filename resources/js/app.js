@@ -1,5 +1,4 @@
-import "bootstrap/dist/css/bootstrap.min.css";
-import * as bootstrap from "bootstrap";
+import "bootstrap-icons/font/bootstrap-icons.css"; // keep if you use Bootstrap Icons
+import $ from 'jquery';
+import 'select2/dist/css/select2.min.css'; // import CSS too
 
-// ✅ Make bootstrap available globally for Blade scripts
-window.bootstrap = bootstrap;
