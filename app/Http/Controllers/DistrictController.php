@@ -66,4 +66,11 @@ class DistrictController extends Controller
         return redirect()->route('districts.index')
             ->with('success', 'ລຶບຂໍ້ມູນສຳເລັດແລ້ວ');
     }
+
+    public function byProvince(Province $province)
+    {
+        return response()->json(
+            $province->districts()->orderBy('name','asc')->get(['id', 'name'])
+        );
+    }
 }

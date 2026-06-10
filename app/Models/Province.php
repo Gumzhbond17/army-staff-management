@@ -16,4 +16,9 @@ class Province extends Model
         'created_by',
         'updated_by',
     ];
+
+    public function districts()
+    {
+        return $this->hasMany(District::class);
+    }
 }

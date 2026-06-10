@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DistrictController;
+use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RankController;
 use App\Http\Controllers\StaffCategoryController;
@@ -35,11 +36,23 @@ Route::middleware('auth')->group(function () {
         return view('welcome'); // your protected view
     });
 
+    // ✅ Add this — province → districts lookup for the add form AJAX
+    Route::get('/provinces/{province}/districts', [DistrictController::class, 'byProvince'])
+        ->name('provinces.districts');
+
+    Route::apiResource('districts', DistrictController::class);
+
+    // ✅ Add this
+    Route::resource('employees', EmployeeController::class);
+
     // Use resources
     Route::resource('ranks', RankController::class);
     Route::resource('units', UnitController::class);
     Route::resource('provinces', ProvinceController::class);
-    Route::apiResource('districts', DistrictController::class);
     Route::resource('staff-categories', StaffCategoryController::class);
     Route::resource('working-statuses', WorkingStatusController::class);
+
+
+
+
 });
