@@ -7,6 +7,8 @@ use App\Models\Unit;
 use App\Models\WorkingStatus;
 use App\Models\Province;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 
 class EmployeeController extends Controller
@@ -16,29 +18,13 @@ class EmployeeController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Employee::with(['unit', 'workStatus'])->latest();
+        $query = Employee::with(['unit', 'workStatus']);
 
-        if ($request->filled('search')) {
-            $query->search($request->search);
+        if ($search = $request->get('search')) {
+            $query->where('full_name', 'like', "%{$search}%");
         }
 
-        if ($request->filled('unit')) {
-            $query->byUnit($request->unit);
-        }
-
-        if ($request->filled('retirement_status')) {
-            $query->where('retirement_status', $request->retirement_status);
-        }
-
-        if ($request->filled('gender')) {
-            $query->where('gender', $request->gender);
-        }
-
-        if ($request->filled('blood_group')) {
-            $query->where('blood_group', $request->blood_group);
-        }
-
-        $employees = $query->paginate(20);
+        $employees = $query->orderBy('full_name')->paginate(15)->withQueryString();
 
         return view('employees.index', compact('employees'));
     }
@@ -49,9 +35,10 @@ class EmployeeController extends Controller
     public function create()
     {
         return view('employees.add_form', [
-            'units'        => Unit::orderBy('name', 'asc')->get(),
-            'workStatuses' => WorkingStatus::orderBy('name', 'asc')->get(),
-            'provinces'    => Province::orderBy('name', 'asc')->get(),
+            'units'        => Unit::orderBy('name','asc')->get(),
+            'workStatuses' => WorkingStatus::orderBy('name','asc')->get(),
+            'provinces'    => Province::orderBy('name','asc')->get(),
+            'employee'     => new Employee(),
         ]);
     }
 
@@ -60,168 +47,203 @@ class EmployeeController extends Controller
      */
     public function store(Request $request)
     {
+        // Temporary debug — remove after fixing
+        Log::info('=== STORE DEBUG ===', [
+            'hasFile'        => $request->hasFile('photo'),
+            'fileValid'      => $request->hasFile('photo') ? $request->file('photo')->isValid() : 'no file',
+            'fileError'      => $request->hasFile('photo') ? $request->file('photo')->getError() : 'no file',
+            'fileSize'       => $request->hasFile('photo') ? $request->file('photo')->getSize() : 'no file',
+            'fileMime'       => $request->hasFile('photo') ? $request->file('photo')->getMimeType() : 'no file',
+        ]);
+
         $validated = $request->validate($this->rules());
 
-        // Validate children if any
         if ($request->filled('child_count') && $request->child_count > 0) {
-            $request->validate([
-                'children.*.first_name' => ['required', 'string', 'max:100'],
-                'children.*.last_name'  => ['required', 'string', 'max:100'],
-                'children.*.dob'        => ['nullable', 'date'],
-                'children.*.gender'     => ['nullable', Rule::in(['ຊາຍ', 'ຍິງ'])],
-                'children.*.note'       => ['nullable', 'string', 'max:255'],
-            ]);
+            $request->validate($this->childrenRules());
         }
 
-        // Remove non-employee fields before creating
-        $employeeData = $request->except(['children', 'child_count']);
-        $employee = Employee::create($employeeData);
+        unset($validated['child_count']);
 
-        // Save children
-        if ($request->filled('child_count') && $request->child_count > 0) {
-            foreach ($request->input('children', []) as $child) {
-                $employee->children()->create($child);
+        try {
+            if ($request->hasFile('photo')) {
+                $validated['photo'] = $request->file('photo')->store('employees/photos', 'public');
             }
+
+            $employee = Employee::create($validated);
+            $this->syncChildren($employee, $request);
+
+        } catch (\Throwable $e) {
+            Log::error('Employee store failed: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['general' => 'ບໍ່ສາມາດບັນທຶກຂໍ້ມູນໄດ້: ' . $e->getMessage()]);
         }
 
         return redirect()->route('employees.index')
-                         ->with('success', 'ເພີ່ມຂໍ້ມູນພະນັກງານສຳເລັດ');
+                        ->with('success', 'ເພີ່ມຂໍ້ມູນພະນັກງານສຳເລັດ');
     }
 
     /**
-     * GET /employees/{id}
+     * GET /employees/{employee}
      */
-    public function show(string $id)
+    public function show(Employee $employee)
     {
-        $employee = Employee::with(['unit', 'workStatus', 'children'])->findOrFail($id);
+        $employee->load([
+            'unit', 'workStatus',
+            'birthProvince', 'birthDistrict',
+            'currentProvince', 'currentDistrict',
+            'children',
+        ]);
 
         return view('employees.show', compact('employee'));
     }
 
     /**
-     * GET /employees/{id}/edit
+     * GET /employees/{employee}/edit
      */
-    public function edit(string $id)
+    public function edit(Employee $employee)
     {
-        $employee = Employee::with('children')->findOrFail($id);
+        $employee->load(['children', 'birthDistrict', 'currentDistrict']);
 
         return view('employees.edit_form', [
             'employee'     => $employee,
-            'units'        => Unit::orderBy('name', 'asc')->get(),
-            'workStatuses' => WorkingStatus::orderBy('name', 'asc')->get(),
-            'provinces'    => Province::orderBy('name', 'asc')->get(),
+            'units'        => Unit::orderBy('name','asc')->get(),
+            'workStatuses' => WorkingStatus::orderBy('name','asc')->get(),
+            'provinces'    => Province::orderBy('name','asc')->get(),
         ]);
     }
 
     /**
-     * PUT /employees/{id}
+     * PUT/PATCH /employees/{employee}
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Employee $employee)
     {
-        $employee = Employee::findOrFail($id);
+        $validated = $request->validate($this->rules($employee->id));
 
-        $validated = $request->validate($this->rules($id));
-
-        // Validate children if any
         if ($request->filled('child_count') && $request->child_count > 0) {
-            $request->validate([
-                'children.*.first_name' => ['required', 'string', 'max:100'],
-                'children.*.last_name'  => ['required', 'string', 'max:100'],
-                'children.*.dob'        => ['nullable', 'date'],
-                'children.*.gender'     => ['nullable', Rule::in(['ຊາຍ', 'ຍິງ'])],
-                'children.*.note'       => ['nullable', 'string', 'max:255'],
-            ]);
+            $request->validate($this->childrenRules());
         }
 
-        $employee->update($request->except(['children', 'child_count']));
+        unset($validated['child_count']);
 
-        // Sync children: delete old, insert new
-        $employee->children()->delete();
-        if ($request->filled('child_count') && $request->child_count > 0) {
-            foreach ($request->input('children', []) as $child) {
-                $employee->children()->create($child);
+        if ($request->hasFile('photo')) {
+            if ($employee->photo) {
+                Storage::disk('public')->delete($employee->photo);
             }
+            $validated['photo'] = $request->file('photo')->store('employees/photos', 'public');
         }
+
+        $employee->update($validated);
+
+        // Replace children records
+        $employee->children()->delete();
+        $this->syncChildren($employee, $request);
 
         return redirect()->route('employees.index')
-                         ->with('success', 'ແກ້ໄຂຂໍ້ມູນສຳເລັດ');
+                         ->with('success', 'ແກ້ໄຂຂໍ້ມູນພະນັກງານສຳເລັດ');
     }
 
     /**
-     * DELETE /employees/{id}
+     * DELETE /employees/{employee}
      */
-    public function destroy(string $id)
+    public function destroy(Employee $employee)
     {
-        $employee = Employee::findOrFail($id);
+        if ($employee->photo) {
+            Storage::disk('public')->delete($employee->photo);
+        }
+
         $employee->children()->delete();
         $employee->delete();
 
         return redirect()->route('employees.index')
-                         ->with('success', 'ລຶບຂໍ້ມູນສຳເລັດ');
+                         ->with('success', 'ລຶບຂໍ້ມູນພະນັກງານສຳເລັດ');
     }
 
     /**
-     * Shared validation rules
+     * Validation rules for create/update.
      */
-    private function rules(string $id = null): array
+    private function rules(?int $employeeId = null): array
     {
         return [
-            // ໝວດ I
-            'gender'         => ['nullable', Rule::in(['ຊາຍ', 'ຍິງ'])],
-            'full_name'      => ['required', 'string', 'max:255'],
-            'unit_id'        => ['required', 'integer', 'exists:units,id'],
-            'dob'            => ['nullable', 'date'],
-            'party_duty'     => ['nullable', 'string', 'max:255'],
-            'command_duty'   => ['nullable', 'string', 'max:255'],
-            'officer_code'   => ['nullable', 'string', 'max:12'],
-            'id_card_number' => ['nullable', 'string', 'max:25'],
-            'work_status_id' => ['required', 'integer', 'exists:working_statuses,id'],
-            'blood_group'    => ['nullable', Rule::in(['A', 'B', 'O', 'AB'])],
+            'photo'              => ['nullable', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
+            'full_name'          => ['required', 'string', 'max:150'],
+            'gender'             => ['nullable', Rule::in(['male', 'female'])],
+            'dob'                => ['nullable', 'date'],
+            'officer_code'       => ['nullable', 'string', 'max:12'],
+            'id_card_number'     => ['nullable', 'string', 'max:25'],
+            'unit_id'            => ['required', 'exists:units,id'],
+            'work_status_id'     => ['required', 'exists:working_statuses,id'],
+            'party_duty'         => ['nullable', 'string', 'max:255'],
+            'command_duty'       => ['nullable', 'string', 'max:255'],
+            'blood_group'        => ['nullable', Rule::in(['A', 'B', 'O', 'AB'])],
 
-            // ໝວດ II
-            'birth_village'      => ['nullable', 'string', 'max:150'],
-            'birth_district_id'  => ['nullable', 'integer', 'exists:districts,id'],
-            'birth_province_id'  => ['nullable', 'integer', 'exists:provinces,id'],
+            'birth_province_id'  => ['nullable', 'exists:provinces,id'],
+            'birth_district_id'  => ['nullable', 'exists:districts,id'],
+            'birth_village'      => ['nullable', 'string', 'max:255'],
 
-            // ໝວດ III
-            'current_village'     => ['nullable', 'string', 'max:150'],
-            'current_district_id' => ['nullable', 'integer', 'exists:districts,id'],
-            'current_province_id' => ['nullable', 'integer', 'exists:provinces,id'],
+            'current_province_id' => ['nullable', 'exists:provinces,id'],
+            'current_district_id' => ['nullable', 'exists:districts,id'],
+            'current_village'     => ['nullable', 'string', 'max:255'],
 
-            // ໝວດ IV
-            'culture_level'    => ['nullable', 'string', 'max:100'],
-            'theory_level'     => ['nullable', 'string', 'max:100'],
-            'theory_from'      => ['nullable', 'string', 'max:255'],
-            'profession_level' => ['nullable', 'string', 'max:100'],
-            'profession_from'  => ['nullable', 'string', 'max:255'],
+            'culture_level'      => ['nullable', 'string', 'max:255'],
+            'theory_level'       => ['nullable', 'string', 'max:255'],
+            'theory_from'        => ['nullable', 'string', 'max:255'],
+            'profession_level'   => ['nullable', 'string', 'max:255'],
+            'profession_from'    => ['nullable', 'string', 'max:255'],
 
-            // ໝວດ V
-            'nationality'       => ['nullable', 'string', 'max:100'],
-            'ethnicity_group'   => ['nullable', 'string', 'max:100'],
-            'tribe'             => ['nullable', 'string', 'max:100'],
-            'religion'          => ['nullable', 'string', 'max:100'],
-            'class_before_1975' => ['nullable', 'string', 'max:100'],
-            'class_after_1975'  => ['nullable', 'string', 'max:100'],
+            'nationality'        => ['nullable', 'string', 'max:255'],
+            'ethnicity_group'    => ['nullable', 'string', 'max:255'],
+            'tribe'              => ['nullable', 'string', 'max:255'],
+            'religion'           => ['nullable', 'string', 'max:255'],
+            'class_before_1975'  => ['nullable', 'string', 'max:255'],
+            'class_after_1975'   => ['nullable', 'string', 'max:255'],
 
-            // ໝວດ VI
             'join_revolution_date' => ['nullable', 'date'],
             'join_army_date'       => ['nullable', 'date'],
             'candidate_party_date' => ['nullable', 'date'],
             'full_party_date'      => ['nullable', 'date'],
             'current_rank_date'    => ['nullable', 'date'],
 
-            // ໝວດ VII
-            'parents_name'   => ['nullable', 'string', 'max:255'],
-            'spouse_name'    => ['nullable', 'string', 'max:255'],
-            'child_count'    => ['nullable', 'integer', 'min:0'],
+            'parents_name'       => ['nullable', 'string', 'max:255'],
+            'spouse_name'        => ['nullable', 'string', 'max:255'],
 
-            // ໝວດ VII.b
-            'previous_units'    => ['nullable', 'string'],
-            'discipline_record' => ['nullable', 'string'],
+            'child_count'        => ['nullable', 'integer', 'min:0', 'max:10'],
 
-            // ໝວດ VIII
-            'biography' => ['nullable', 'string'],
-            'photo'     => ['nullable', 'string'],
+            'previous_units'     => ['nullable', 'string'],
+            'discipline_record'  => ['nullable', 'string'],
+            'biography'          => ['nullable', 'string'],
         ];
+    }
+
+    /**
+     * Validation rules for the dynamic children rows.
+     */
+    private function childrenRules(): array
+    {
+        return [
+            'children.*.first_name' => ['required', 'string', 'max:100'],
+            'children.*.last_name'  => ['required', 'string', 'max:100'],
+            'children.*.dob'        => ['nullable', 'date'],
+            'children.*.gender'     => ['nullable', Rule::in(['male', 'female'])],
+            'children.*.note'       => ['nullable', 'string', 'max:255'],
+        ];
+    }
+
+    /**
+     * Persist children rows for an employee.
+     */
+    private function syncChildren(Employee $employee, Request $request): void
+    {
+        if (!$request->filled('child_count') || $request->child_count <= 0) {
+            return;
+        }
+
+        foreach ($request->input('children', []) as $child) {
+            if (empty($child['first_name']) && empty($child['last_name'])) {
+                continue;
+            }
+            $employee->children()->create($child);
+        }
     }
 }

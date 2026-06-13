@@ -336,6 +336,34 @@
 
 <div class="page-wrapper">
 
+    @if(session('success'))
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'success',
+                title: 'ສຳເລັດ',
+                text: '{{ session('success') }}',
+                confirmButtonColor: '#6366f1',
+                timer: 2500,
+                showConfirmButton: false,
+            });
+        });
+        </script>
+        @endif
+
+        @if($errors->any())
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'ມີຂໍ້ຜິດພາດ',
+                html: `{!! implode('<br>', $errors->all()) !!}`,
+                confirmButtonColor: '#6366f1',
+            });
+        });
+        </script>
+    @endif
+
     {{-- ===== Page Header ===== --}}
     <div class="page-header d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
@@ -414,13 +442,13 @@
                                 <label class="form-label">ເພດ</label>
                                 <div class="gender-group mt-1">
                                     <div class="gender-btn">
-                                        <input type="radio" name="gender" id="genderMale" value="ຊາຍ"
-                                               {{ old('gender') == 'ຊາຍ' ? 'checked' : '' }}>
+                                        <input type="radio" name="gender" id="genderMale" value="male"
+                                               {{ old('gender') == 'male' ? 'checked' : '' }}>
                                         <label for="genderMale"><i class="bi bi-gender-male text-primary"></i> ຊາຍ</label>
                                     </div>
                                     <div class="gender-btn">
-                                        <input type="radio" name="gender" id="genderFemale" value="ຍິງ"
-                                               {{ old('gender') == 'ຍິງ' ? 'checked' : '' }}>
+                                        <input type="radio" name="gender" id="genderFemale" value="female"
+                                               {{ old('gender') == 'female' ? 'checked' : '' }}>
                                         <label for="genderFemale"><i class="bi bi-gender-female text-danger"></i> ຍິງ</label>
                                     </div>
                                 </div>
@@ -879,48 +907,7 @@
 
 @push('scripts')
 <script>
-$(document).ready(function () {
-
-    // ===== Select2 init (Bootstrap 5 theme) =====
-    $('.select2').select2({
-        theme: 'bootstrap-5',
-        width: '100%',
-        language: {
-            noResults: () => 'ບໍ່ພົບຂໍ້ມູນ',
-            searching: () => 'ກຳລັງຄົ້ນຫາ...',
-        }
-    });
-
-    // ===== Province → District AJAX (birth) =====
-    $('#birthProvince').on('change', function () {
-        loadDistricts($(this).val(), '#birthDistrict');
-    });
-
-    // ===== Province → District AJAX (current) =====
-    $('#currentProvince').on('change', function () {
-        loadDistricts($(this).val(), '#currentDistrict');
-    });
-
-    // ===== Restore old district values after page reload (validation fail) =====
-    // @if(old('birth_province_id'))
-    //     loadDistricts('{{ old('birth_province_id') }}', '#birthDistrict', '{{ old('birth_district_id') }}');
-    // @endif
-    // @if(old('current_province_id'))
-    //     loadDistricts('{{ old('current_province_id') }}', '#currentDistrict', '{{ old('current_district_id') }}');
-    // @endif
-
-    @if(old('birth_province_id'))
-    $('#birthProvince').val('{{ old('birth_province_id') }}').trigger('change.select2');
-    loadDistricts('{{ old('birth_province_id') }}', '#birthDistrict', '{{ old('birth_district_id') }}');
-    @endif
-
-    @if(old('current_province_id'))
-        $('#currentProvince').val('{{ old('current_province_id') }}').trigger('change.select2');
-        loadDistricts('{{ old('current_province_id') }}', '#currentDistrict', '{{ old('current_district_id') }}');
-    @endif
-
-    });
-
+    const oldChildren = @json(old('children', []));
     // ===== Load Districts via AJAX =====
     function loadDistricts(provinceId, targetSelector, selectedId = null) {
         const $select = $(targetSelector);
@@ -972,34 +959,6 @@ $(document).ready(function () {
         $('#currentVillage').val(villageVal);
     }
 
-    // ===== Active step pill on scroll =====
-    const sections = document.querySelectorAll('[id^="sec"]');
-    const pills    = document.querySelectorAll('.step-pill');
-    window.addEventListener('scroll', () => {
-        let current = '';
-        sections.forEach(s => {
-            if (window.scrollY >= s.offsetTop - 130) current = s.id;
-        });
-        pills.forEach(p => {
-            p.classList.toggle('active', p.getAttribute('href') === `#${current}`);
-        });
-    });
-
-    // ===== Form validation + SweetAlert2 on submit =====
-    document.getElementById('employeeForm').addEventListener('submit', function (e) {
-        if (!this.checkValidity()) {
-            e.preventDefault();
-            e.stopPropagation();
-            this.classList.add('was-validated');
-            Swal.fire({
-                icon: 'warning',
-                title: 'ຂໍ້ມູນບໍ່ຄົບຖ້ວນ',
-                text: 'ກະລຸນາຕື່ມຂໍ້ມູນທີ່ຈຳເປັນໃຫ້ຄົບ',
-                confirmButtonColor: '#6366f1',
-            });
-        }
-    });
-
     function renderChildren(count) {
         const container = document.getElementById('childrenContainer');
         let html = '';
@@ -1034,12 +993,80 @@ $(document).ready(function () {
         }
         container.innerHTML = html || '';
     }
+$(document).ready(function () {
 
-    document.getElementById('childCount').addEventListener('input', function () {
+    // ===== Select2 init (Bootstrap 5 theme) =====
+    $('.select2').select2({
+        theme: 'bootstrap-5',
+        width: '100%',
+        language: {
+            noResults: () => 'ບໍ່ພົບຂໍ້ມູນ',
+            searching: () => 'ກຳລັງຄົ້ນຫາ...',
+        }
+    });
+
+    // ===== Province → District AJAX (birth) =====
+    $('#birthProvince').on('change', function () {
+        loadDistricts($(this).val(), '#birthDistrict');
+    });
+
+    // ===== Province → District AJAX (current) =====
+    $('#currentProvince').on('change', function () {
+        loadDistricts($(this).val(), '#currentDistrict');
+    });
+
+    @if(old('birth_province_id'))
+    $('#birthProvince').val('{{ old('birth_province_id') }}').trigger('change.select2');
+    loadDistricts('{{ old('birth_province_id') }}', '#birthDistrict', '{{ old('birth_district_id') }}');
+    @endif
+
+    @if(old('current_province_id'))
+        $('#currentProvince').val('{{ old('current_province_id') }}').trigger('change.select2');
+        loadDistricts('{{ old('current_province_id') }}', '#currentDistrict', '{{ old('current_district_id') }}');
+    @endif
+
+    });
+
+    $('#childCount').on('input', function () {
         renderChildren(parseInt(this.value) || 0);
     });
 
-    // Restore on validation fail
     renderChildren({{ old('child_count', 0) }});
+
+    oldChildren.forEach((child, i) => {
+        $(`[name="children[${i}][first_name]"]`).val(child.first_name ?? '');
+        $(`[name="children[${i}][last_name]"]`).val(child.last_name ?? '');
+        $(`[name="children[${i}][dob]"]`).val(child.dob ?? '');
+        $(`[name="children[${i}][gender]"]`).val(child.gender ?? '');
+        $(`[name="children[${i}][note]"]`).val(child.note ?? '');
+    });
+
+    // Form validation
+    document.getElementById('employeeForm').addEventListener('submit', function (e) {
+        if (!this.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.add('was-validated');
+            Swal.fire({
+                icon: 'warning',
+                title: 'ຂໍ້ມູນບໍ່ຄົບຖ້ວນ',
+                text: 'ກະລຸນາຕື່ມຂໍ້ມູນທີ່ຈຳເປັນໃຫ້ຄົບ',
+                confirmButtonColor: '#6366f1',
+            });
+        }
+    });
+
+    // Scroll spy
+    const sections = document.querySelectorAll('[id^="sec"]');
+    const pills    = document.querySelectorAll('.step-pill');
+    window.addEventListener('scroll', () => {
+        let current = '';
+        sections.forEach(s => {
+            if (window.scrollY >= s.offsetTop - 130) current = s.id;
+        });
+        pills.forEach(p => {
+            p.classList.toggle('active', p.getAttribute('href') === `#${current}`);
+        });
+    });
 </script>
 @endpush

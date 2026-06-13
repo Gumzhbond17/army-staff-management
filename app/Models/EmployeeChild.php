@@ -8,9 +8,9 @@ class EmployeeChild extends Model
 {
     protected $fillable = ['employee_id', 'first_name', 'last_name', 'dob', 'gender', 'note'];
 
-    public function children()
+    public function employee()
     {
-        return $this->hasMany(EmployeeChild::class);
+        return $this->belongsTo(Employee::class);
     }
 }
 

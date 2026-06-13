@@ -7,6 +7,34 @@
             <div class="card-header">
                 <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap py-2 px-3">
 
+                    @if(session('success'))
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'ສຳເລັດ',
+                            text: '{{ session('success') }}',
+                            confirmButtonColor: '#6366f1',
+                            timer: 2500,
+                            showConfirmButton: false,
+                        });
+                    });
+                    </script>
+                    @endif
+
+                    @if($errors->any())
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'ມີຂໍ້ຜິດພາດ',
+                            html: `{!! implode('<br>', $errors->all()) !!}`,
+                            confirmButtonColor: '#6366f1',
+                        });
+                    });
+                    </script>
+                    @endif
+
                     {{-- Search --}}
                     <form action="{{ route('employees.index') }}" method="GET"
                         class="d-flex align-items-center gap-2">
@@ -194,7 +222,7 @@
                     style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%); padding:1.25rem 1.5rem;">
                     <div class="d-flex align-items-center gap-3 w-100">
                         <div id="modal-avatar"
-                            class="d-flex align-items-center justify-content-center rounded-circle bg-white text-primary fw-bold flex-shrink-0"
+                            class="d-flex align-items-center justify-content-center rounded-circle bg-white text-primary fw-bold shrink-0"
                             style="width:52px; height:52px; font-size:18px; overflow:hidden;">
                         </div>
                         <div class="text-white">

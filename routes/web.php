@@ -7,52 +7,48 @@ use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RankController;
 use App\Http\Controllers\StaffCategoryController;
 use App\Http\Controllers\UnitController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\WorkingStatusController;
 use Illuminate\Support\Facades\Route;
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
-
-// Route::prefix('ranks')->group(function () {
-//     Route::get('/', [RankController::class, 'index']);
-// });
-
-// Route::prefix('units')->group(function () {
-//     Route::get('/', [UnitController::class, 'index']);
-// });
-
-// Guest routes
+/*
+|--------------------------------------------------------------------------
+| Guest Routes
+|--------------------------------------------------------------------------
+*/
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
 });
 
-// Authenticated routes
-Route::middleware('auth')->group(function () {
+/*
+|--------------------------------------------------------------------------
+| Authenticated Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'active'])->group(function () {
+
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
     Route::get('/', function () {
-        return view('welcome'); // your protected view
-    });
+        return view('welcome');
+    })->name('home');
 
-    // ✅ Add this — province → districts lookup for the add form AJAX
+    // Province -> Districts lookup for the add form AJAX
     Route::get('/provinces/{province}/districts', [DistrictController::class, 'byProvince'])
         ->name('provinces.districts');
 
-    Route::apiResource('districts', DistrictController::class);
-
-    // ✅ Add this
+    Route::resource('districts', DistrictController::class);
     Route::resource('employees', EmployeeController::class);
-
-    // Use resources
     Route::resource('ranks', RankController::class);
     Route::resource('units', UnitController::class);
     Route::resource('provinces', ProvinceController::class);
     Route::resource('staff-categories', StaffCategoryController::class);
     Route::resource('working-statuses', WorkingStatusController::class);
 
-
-
-
+    // Admin-only routes
+    Route::middleware('role:admin')->group(function () {
+        Route::resource('users', UserController::class)
+            ->only(['index', 'store', 'update', 'destroy']);
+    });
 });

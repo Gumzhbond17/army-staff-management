@@ -15,6 +15,7 @@
                     </a>
                 </li>
 
+                @if (auth()->user()?->role === 'admin')
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle {{ request()->routeIs('units.*', 'ranks.*', 'staff-categories.*', 'working-statuses.*', 'provinces.*', 'districts.*') ? 'active' : '' }}"
                     href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -22,7 +23,7 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li>
-                            <a class="dropdown-item" href="#">
+                            <a class="dropdown-item {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}">
                                 <i class="bi bi-person-gear me-1"></i>ຂໍ້ມູນຜູ້ໃຊ້ລະບົບ
                             </a>
                         </li>
@@ -64,6 +65,7 @@
                         </li>
                     </ul>
                 </li>
+                @endif
 
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('employees.index') ? 'active' : '' }}"
