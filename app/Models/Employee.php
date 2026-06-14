@@ -29,6 +29,7 @@ class Employee extends Model
         'child_count',
 
         'previous_units', 'discipline_record', 'biography',
+        'created_by', 'updated_by',
     ];
 
     protected $casts = [

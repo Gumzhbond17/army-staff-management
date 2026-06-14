@@ -9,6 +9,7 @@ use App\Models\WorkingStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class EmployeeController extends Controller
@@ -30,12 +31,6 @@ class EmployeeController extends Controller
             'party_duty'           => ['nullable', 'string', 'max:255'],
             'command_duty'         => ['nullable', 'string', 'max:255'],
             'blood_group'          => ['nullable', 'in:A,B,O,AB'],
-
-            // BUG FIX #1: photo must use 'sometimes' so it is only validated
-            // when actually present in the request. Without 'sometimes',
-            // Laravel validates the 'photo' key even on update when no new
-            // file is uploaded, causing a "The photo must be an image" error.
-            'photo'                => ['sometimes', 'nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
 
             'birth_province_id'    => ['nullable', 'exists:provinces,id'],
             'birth_district_id'    => ['nullable', 'exists:districts,id'],
@@ -168,19 +163,15 @@ class EmployeeController extends Controller
             $request->validate($this->childrenRules());
         }
 
-        // BUG FIX #3: Remove child_count from $validated AFTER validation
-        // so it does not get passed to Employee::create() — child_count is
-        // NOT in the employees table; it lives only in employee_children rows.
-        // We kept child_count in rules() so the raw value passes validation,
-        // then we strip it here before the DB insert.
         unset($validated['child_count']);
 
-        // Handle photo upload
+        $validated['created_by'] = Auth::id();
+        $validated['updated_by'] = Auth::id();
+
         if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
+            $request->validate(['photo' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120']]);
             $validated['photo'] = $request->file('photo')
                 ->store('employees/photos', 'public');
-        } else {
-            unset($validated['photo']);
         }
 
         $employee = Employee::create($validated);
@@ -219,7 +210,18 @@ class EmployeeController extends Controller
         $units           = Unit::orderBy('name', 'asc')->get();
         $workingStatuses = WorkingStatus::orderBy('name', 'asc')->get();
 
-        return view('employees.edit', compact('employee', 'provinces', 'units', 'workingStatuses'));
+        $employeeChildren = $employee->children->map(function ($c) {
+            $dob = $c->getRawOriginal('dob');
+            return [
+                'first_name' => $c->first_name,
+                'last_name'  => $c->last_name,
+                'dob'        => $dob ?: null,
+                'gender'     => $c->gender,
+                'note'       => $c->note,
+            ];
+        })->values()->toArray();
+
+        return view('employees.edit_form', compact('employee', 'provinces', 'units', 'workingStatuses', 'employeeChildren'));
     }
 
     // ================================================================
@@ -228,29 +230,34 @@ class EmployeeController extends Controller
 
     public function update(Request $request, Employee $employee): RedirectResponse
     {
+        \Log::info('=== UPDATE PHOTO DEBUG ===', [
+            'hasFile'   => $request->hasFile('photo'),
+            'allFiles'  => array_keys($request->allFiles()),
+            'fileValid' => $request->hasFile('photo') ? $request->file('photo')->isValid() : 'no file',
+            'fileError' => $request->hasFile('photo') ? $request->file('photo')->getError() : 'no file',
+            'fileMime'  => $request->hasFile('photo') ? $request->file('photo')->getMimeType() : 'no file',
+            'fileSize'  => $request->hasFile('photo') ? $request->file('photo')->getSize() : 'no file',
+            'contentType' => $request->header('Content-Type'),
+        ]);
+
         $validated = $request->validate($this->rules($employee->id));
 
         if ((int) $request->input('child_count', 0) > 0) {
             $request->validate($this->childrenRules());
         }
 
-        // Strip child_count before DB update (same reason as store)
         unset($validated['child_count']);
 
-        // BUG FIX #4: On update, when no new photo is selected the browser
-        // does NOT send a 'photo' key at all, so $request->hasFile('photo')
-        // is false and we correctly keep the existing photo.
-        // BUT if someone submits with an empty file input, the key exists
-        // but isValid() is false — we must guard against that too.
+        $validated['updated_by'] = Auth::id();
+
         if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
-            // Delete old photo from disk to avoid orphaned files
+            $request->validate(['photo' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120']]);
             if ($employee->photo) {
                 Storage::disk('public')->delete($employee->photo);
             }
             $validated['photo'] = $request->file('photo')
                 ->store('employees/photos', 'public');
         } else {
-            // Keep existing photo — never overwrite with null
             unset($validated['photo']);
         }
 
