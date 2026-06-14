@@ -21,26 +21,53 @@ class Employee extends Model
         'join_revolution_date', 'join_army_date', 'candidate_party_date',
         'full_party_date', 'current_rank_date',
         'parents_name', 'spouse_name',
+
+        // BUG FIX #5: child_count was missing from $fillable.
+        // Without this, Employee::create() / ->update() silently drops the
+        // child_count value even if it arrives in $validated, so the column
+        // in the DB always stayed 0.
+        'child_count',
+
         'previous_units', 'discipline_record', 'biography',
     ];
 
     protected $casts = [
-        'dob' => 'date',
+        'dob'                  => 'date',
         'join_revolution_date' => 'date',
-        'join_army_date' => 'date',
+        'join_army_date'       => 'date',
         'candidate_party_date' => 'date',
-        'full_party_date' => 'date',
-        'current_rank_date' => 'date',
+        'full_party_date'      => 'date',
+        'current_rank_date'    => 'date',
+
+        // BUG FIX #6: child_count should be cast to integer so comparisons
+        // like ($employee->child_count > 0) work correctly in Blade.
+        'child_count'          => 'integer',
     ];
+
+    // ================================================================
+    //  RELATIONSHIPS
+    // ================================================================
 
     public function unit()
     {
         return $this->belongsTo(Unit::class);
     }
 
-    public function workStatus()
+    /**
+     * BUG FIX #7 (show.blade.php): The show view calls $employee->workStatus
+     * but the relationship is defined as workingStatus(). We add a workStatus()
+     * alias here so both names work, preventing "Call to undefined relationship"
+     * errors without having to rename every Blade reference.
+     */
+    public function workingStatus()
     {
         return $this->belongsTo(WorkingStatus::class);
+    }
+
+    // Alias so show.blade.php $employee->workStatus->name works too
+    public function workStatus()
+    {
+        return $this->belongsTo(WorkingStatus::class, 'work_status_id');
     }
 
     public function birthProvince()
@@ -66,5 +93,18 @@ class Employee extends Model
     public function children()
     {
         return $this->hasMany(EmployeeChild::class);
+    }
+
+    // ================================================================
+    //  HELPERS
+    // ================================================================
+
+    /**
+     * Returns the public URL of the employee's photo, or null.
+     * Usage in Blade: $employee->photoUrl
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->photo ? asset('storage/' . $this->photo) : null;
     }
 }

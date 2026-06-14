@@ -9,6 +9,8 @@ class WorkingStatus extends Model
 {
     use HasFactory;
 
+    protected $table = 'working_statuses';
+
     protected $fillable = [
         'name',
         'is_active',

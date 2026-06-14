@@ -1,4 +1,4 @@
-@extends('layouts.main')
+@extends('layouts.mainLayout')
 
 @push('styles')
 <style>
@@ -28,339 +28,256 @@
         </div>
     @endif
 
-    <form action="{{ route('employees.update', $employee->id) }}" method="POST">
-        @csrf
-        @method('PUT')
+    {{--
+    employees/edit.blade.php
+    ════════════════════════════════════════════════════════════════════
+    The form markup is 95% identical to create.blade.php.
+    Only these things change:
 
-        {{-- ໝວດ I --}}
-        <div class="card section-card">
-            <div class="card-header d-flex align-items-center gap-2 fw-semibold">
-                <div class="section-icon bg-primary bg-opacity-10 text-primary">I</div>
-                ໝວດ I · ຂໍ້ມູນທົ່ວໄປ
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-2">
-                        <label class="form-label">ເພດ</label>
-                        <select class="form-select @error('gender') is-invalid @enderror" name="gender">
-                            <option value="">-- ເລືອກ --</option>
-                            <option value="ຊາຍ" {{ old('gender', $employee->gender) == 'ຊາຍ' ? 'selected' : '' }}>ຊາຍ</option>
-                            <option value="ຍິງ" {{ old('gender', $employee->gender) == 'ຍິງ' ? 'selected' : '' }}>ຍິງ</option>
-                        </select>
-                        @error('gender')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">ຊື່ ແລະ ນາມສະກຸນ <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('full_name') is-invalid @enderror"
-                               name="full_name" value="{{ old('full_name', $employee->full_name) }}">
-                        @error('full_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">ໜ່ວຍງານ <span class="text-danger">*</span></label>
-                        <select class="form-select select2 @error('unit_id') is-invalid @enderror" name="unit_id">
-                            <option value="">-- ເລືອກໜ່ວຍງານ --</option>
-                            @foreach($units as $unit)
-                                <option value="{{ $unit->id }}" {{ old('unit_id', $employee->unit_id) == $unit->id ? 'selected' : '' }}>
-                                    {{ $unit->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('unit_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">ວັນເດືອນປີເກີດ</label>
-                        <input type="date" class="form-control @error('dob') is-invalid @enderror"
-                               name="dob" value="{{ old('dob', $employee->dob) }}">
-                        @error('dob')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">ໜ້າທີ່ພັກ</label>
-                        <input type="text" class="form-control" name="party_duty"
-                               value="{{ old('party_duty', $employee->party_duty) }}">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">ໜ້າທີ່ບັນຊາ</label>
-                        <input type="text" class="form-control" name="command_duty"
-                               value="{{ old('command_duty', $employee->command_duty) }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">ລະຫັດນາຍທະຫານ</label>
-                        <input type="text" class="form-control" name="officer_code"
-                               value="{{ old('officer_code', $employee->officer_code) }}">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">ເລກບັດປະຈຳຕົວ</label>
-                        <input type="text" class="form-control" name="id_card_number"
-                               value="{{ old('id_card_number', $employee->id_card_number) }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">ສະຖານະ <span class="text-danger">*</span></label>
-                        <select class="form-select select2 @error('work_status_id') is-invalid @enderror" name="work_status_id">
-                            <option value="">-- ເລືອກ --</option>
-                            @foreach($workStatuses as $ws)
-                                <option value="{{ $ws->id }}" {{ old('work_status_id', $employee->work_status_id) == $ws->id ? 'selected' : '' }}>
-                                    {{ $ws->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('work_status_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">ໝູ່ເລືອດ</label>
-                        <select class="form-select" name="blood_group">
-                            <option value="">--</option>
-                            @foreach(['A','B','O','AB'] as $bg)
-                                <option value="{{ $bg }}" {{ old('blood_group', $employee->blood_group) == $bg ? 'selected' : '' }}>{{ $bg }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-            </div>
+      1. <form action> → route('employees.update', $employee)  +  @method('PUT')
+      2. Every input value → old('field', $employee->field)
+      3. Photo area shows existing photo if present
+      4. @push('scripts') uses the edit_scripts.blade.php version
+
+    Below is the complete list of every value= and selected= change,
+    grouped by section, so you can apply them to your create.blade.php.
+════════════════════════════════════════════════════════════════════ --}}
+
+{{-- ===== FORM TAG ===== --}}
+<form action="{{ route('employees.update', $employee) }}"
+      method="POST"
+      enctype="multipart/form-data"
+      id="employeeForm"
+      novalidate>
+    @csrf
+    @method('PUT')
+
+    {{-- ════════════════════════════════════════════
+         SECTION I · ຂໍ້ມູນທົ່ວໄປ
+    ════════════════════════════════════════════ --}}
+
+    {{-- Photo — show existing photo when present --}}
+    {{-- @php $existingPhoto = $employee->photo ? Storage::url($employee->photo) : null; @endphp --}}
+    @php $existingPhoto = $employee->photo ? asset('storage/' . $employee->photo) : null; @endphp
+    <div class="photo-upload-area w-100">
+        <input type="file" id="photoInput" name="photo" accept="image/*" onchange="previewPhoto(this)">
+        <img id="photoPreview"
+             class="photo-preview"
+             src="{{ $existingPhoto ?? '#' }}"
+             alt="preview"
+             style="{{ $existingPhoto ? '' : 'display:none' }}">
+        <div id="uploadPlaceholder" style="{{ $existingPhoto ? 'display:none' : '' }}">
+            <div class="upload-icon"><i class="bi bi-camera"></i></div>
+            <p class="mb-0 text-muted" style="font-size:0.75rem;">ກົດເພື່ອອັບໂຫຼດ<br><span class="text-primary">JPG, PNG</span></p>
         </div>
+    </div>
 
-        {{-- ໝວດ II --}}
-        <div class="card section-card">
-            <div class="card-header d-flex align-items-center gap-2 fw-semibold">
-                <div class="section-icon bg-success bg-opacity-10 text-success">II</div>
-                ໝວດ II · ສະຖານທີ່ເກີດ
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">ແຂວງ</label>
-                        <select class="form-select select2 @error('birth_province_id') is-invalid @enderror"
-                                name="birth_province_id" id="birthProvince">
-                            <option value="">-- ເລືອກແຂວງ --</option>
-                            @foreach($provinces as $p)
-                                <option value="{{ $p->id }}" {{ old('birth_province_id', $employee->birth_province_id) == $p->id ? 'selected' : '' }}>
-                                    {{ $p->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('birth_province_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">ເມືອງ</label>
-                        <select class="form-select select2 @error('birth_district_id') is-invalid @enderror"
-                                name="birth_district_id" id="birthDistrict">
-                            <option value="">-- ເລືອກເມືອງ --</option>
-                        </select>
-                        @error('birth_district_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">ບ້ານ</label>
-                        <input type="text" class="form-control" name="birth_village"
-                               value="{{ old('birth_village', $employee->birth_village) }}">
-                    </div>
-                </div>
-            </div>
-        </div>
+    {{-- Full Name --}}
+    <input type="text" class="form-control @error('full_name') is-invalid @enderror"
+           name="full_name"
+           value="{{ old('full_name', $employee->full_name) }}"
+           placeholder="ຊື່ ແລະ ນາມສະກຸນ" required>
 
-        {{-- ໝວດ III --}}
-        <div class="card section-card">
-            <div class="card-header d-flex align-items-center gap-2 fw-semibold">
-                <div class="section-icon bg-info bg-opacity-10 text-info">III</div>
-                ໝວດ III · ທີ່ຢູ່ປັດຈຸບັນ
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">ແຂວງ</label>
-                        <select class="form-select select2 @error('current_province_id') is-invalid @enderror"
-                                name="current_province_id" id="currentProvince">
-                            <option value="">-- ເລືອກແຂວງ --</option>
-                            @foreach($provinces as $p)
-                                <option value="{{ $p->id }}" {{ old('current_province_id', $employee->current_province_id) == $p->id ? 'selected' : '' }}>
-                                    {{ $p->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('current_province_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">ເມືອງ</label>
-                        <select class="form-select select2 @error('current_district_id') is-invalid @enderror"
-                                name="current_district_id" id="currentDistrict">
-                            <option value="">-- ເລືອກເມືອງ --</option>
-                        </select>
-                        @error('current_district_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">ບ້ານ</label>
-                        <input type="text" class="form-control" name="current_village"
-                               value="{{ old('current_village', $employee->current_village) }}">
-                    </div>
-                </div>
-            </div>
-        </div>
+    {{-- Gender --}}
+    <input type="radio" name="gender" id="genderMale" value="male"
+           {{ old('gender', $employee->gender) == 'male' ? 'checked' : '' }}>
+    <input type="radio" name="gender" id="genderFemale" value="female"
+           {{ old('gender', $employee->gender) == 'female' ? 'checked' : '' }}>
 
-        {{-- ໝວດ IV --}}
-        <div class="card section-card">
-            <div class="card-header d-flex align-items-center gap-2 fw-semibold">
-                <div class="section-icon bg-warning bg-opacity-10 text-warning">IV</div>
-                ໝວດ IV · ການສຶກສາ
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">ລະດັບວັດທະນະທຳ</label>
-                        <input type="text" class="form-control" name="culture_level"
-                               value="{{ old('culture_level', $employee->culture_level) }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">ລະດັບທິດສະດີ</label>
-                        <input type="text" class="form-control" name="theory_level"
-                               value="{{ old('theory_level', $employee->theory_level) }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">ຈາກສະຖາບັນ (ທິດສະດີ)</label>
-                        <input type="text" class="form-control" name="theory_from"
-                               value="{{ old('theory_from', $employee->theory_from) }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">ລະດັບວິຊາຊີບ</label>
-                        <input type="text" class="form-control" name="profession_level"
-                               value="{{ old('profession_level', $employee->profession_level) }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">ຈາກສະຖາບັນ (ວິຊາຊີບ)</label>
-                        <input type="text" class="form-control" name="profession_from"
-                               value="{{ old('profession_from', $employee->profession_from) }}">
-                    </div>
-                </div>
-            </div>
-        </div>
+    {{-- DOB --}}
+    <input type="date" class="form-control @error('dob') is-invalid @enderror"
+           name="dob"
+           value="{{ old('dob', $employee->dob?->format('Y-m-d')) }}">
 
-        {{-- ໝວດ V --}}
-        <div class="card section-card">
-            <div class="card-header d-flex align-items-center gap-2 fw-semibold">
-                <div class="section-icon bg-danger bg-opacity-10 text-danger">V</div>
-                ໝວດ V · ຊົນເຜົ່າ ແລະ ສາສະໜາ
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-2">
-                        <label class="form-label">ສັນຊາດ</label>
-                        <input type="text" class="form-control" name="nationality"
-                               value="{{ old('nationality', $employee->nationality) }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">ກຸ່ມຊົນເຜົ່າ</label>
-                        <input type="text" class="form-control" name="ethnicity_group"
-                               value="{{ old('ethnicity_group', $employee->ethnicity_group) }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">ເຜົ່າ</label>
-                        <input type="text" class="form-control" name="tribe"
-                               value="{{ old('tribe', $employee->tribe) }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">ສາສະໜາ</label>
-                        <input type="text" class="form-control" name="religion"
-                               value="{{ old('religion', $employee->religion) }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">ຊັ້ນກ່ອນ 1975</label>
-                        <input type="text" class="form-control" name="class_before_1975"
-                               value="{{ old('class_before_1975', $employee->class_before_1975) }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">ຊັ້ນຫຼັງ 1975</label>
-                        <input type="text" class="form-control" name="class_after_1975"
-                               value="{{ old('class_after_1975', $employee->class_after_1975) }}">
-                    </div>
-                </div>
-            </div>
-        </div>
+    {{-- Officer Code --}}
+    <input type="text" class="form-control @error('officer_code') is-invalid @enderror"
+           name="officer_code"
+           value="{{ old('officer_code', $employee->officer_code) }}"
+           maxlength="12">
 
-        {{-- ໝວດ VI --}}
-        <div class="card section-card">
-            <div class="card-header d-flex align-items-center gap-2 fw-semibold">
-                <div class="section-icon bg-secondary bg-opacity-10 text-secondary">VI</div>
-                ໝວດ VI · ວັນທີສຳຄັນ
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    @foreach([
-                        'join_revolution_date' => 'ວັນເຂົ້າຮ່ວມປະຕິວັດ',
-                        'join_army_date'       => 'ວັນເຂົ້າກອງທັບ',
-                        'candidate_party_date' => 'ວັນເປັນສະມາຊິກທົດລອງ',
-                        'full_party_date'      => 'ວັນເປັນສະມາຊິກເຕັມ',
-                        'current_rank_date'    => 'ວັນໄດ້ຍົດປັດຈຸບັນ',
-                    ] as $field => $label)
-                    <div class="col-md-4">
-                        <label class="form-label">{{ $label }}</label>
-                        <input type="date" class="form-control @error($field) is-invalid @enderror"
-                               name="{{ $field }}" value="{{ old($field, $employee->$field) }}">
-                        @error($field)<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
+    {{-- ID Card --}}
+    <input type="text" class="form-control @error('id_card_number') is-invalid @enderror"
+           name="id_card_number"
+           value="{{ old('id_card_number', $employee->id_card_number) }}"
+           maxlength="25">
 
-        {{-- ໝວດ VII --}}
-        <div class="card section-card">
-            <div class="card-header d-flex align-items-center gap-2 fw-semibold">
-                <div class="section-icon bg-primary bg-opacity-10 text-primary">VII</div>
-                ໝວດ VII · ຖອດຖື ແລະ ວິໄນ
-            </div>
-            <div class="card-body">
-                <div class="row g-3 mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label">ຊື່ພໍ່ແມ່</label>
-                        <input type="text" class="form-control" name="parents_name"
-                               value="{{ old('parents_name', $employee->parents_name) }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">ຊື່ຄູ່ສົມລົດ</label>
-                        <input type="text" class="form-control" name="spouse_name"
-                               value="{{ old('spouse_name', $employee->spouse_name) }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">ຈຳນວນລູກ</label>
-                        <input type="number" class="form-control" name="child_count" id="childCount"
-                               min="0" max="10" value="{{ old('child_count', $employee->child_count ?? 0) }}">
-                    </div>
-                </div>
+    {{-- Unit --}}
+    <select class="form-select select2 @error('unit_id') is-invalid @enderror"
+            name="unit_id" id="unitSelect" required>
+        <option value="">-- ເລືອກກອງ --</option>
+        @foreach($units as $unit)
+            <option value="{{ $unit->id }}"
+                {{ old('unit_id', $employee->unit_id) == $unit->id ? 'selected' : '' }}>
+                {{ $unit->name }}
+            </option>
+        @endforeach
+    </select>
 
-                {{-- Children rows --}}
-                <div id="childrenContainer"></div>
+    {{-- Work Status --}}
+    <select class="form-select select2 @error('work_status_id') is-invalid @enderror"
+            name="work_status_id" id="workStatusSelect" required>
+        <option value="">-- ເລືອກສະຖານະ --</option>
+        @foreach($workStatuses as $status)
+            <option value="{{ $status->id }}"
+                {{ old('work_status_id', $employee->work_status_id) == $status->id ? 'selected' : '' }}>
+                {{ $status->name }}
+            </option>
+        @endforeach
+    </select>
 
-                <div class="row g-3 mt-2">
-                    <div class="col-md-6">
-                        <label class="form-label">ໜ່ວຍງານທີ່ຜ່ານມາ</label>
-                        <textarea class="form-control" name="previous_units" rows="3">{{ old('previous_units', $employee->previous_units) }}</textarea>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">ປະຫວັດວິໄນ</label>
-                        <textarea class="form-control" name="discipline_record" rows="3">{{ old('discipline_record', $employee->discipline_record) }}</textarea>
-                    </div>
-                </div>
-            </div>
-        </div>
+    {{-- Party Duty --}}
+    <input type="text" class="form-control @error('party_duty') is-invalid @enderror"
+           name="party_duty"
+           value="{{ old('party_duty', $employee->party_duty) }}">
 
-        {{-- ໝວດ VIII --}}
-        <div class="card section-card">
-            <div class="card-header d-flex align-items-center gap-2 fw-semibold">
-                <div class="section-icon bg-dark bg-opacity-10 text-dark">VIII</div>
-                ໝວດ VIII · ຊີວະປະຫວັດ
-            </div>
-            <div class="card-body">
-                <textarea class="form-control" name="biography" rows="5">{{ old('biography', $employee->biography) }}</textarea>
-            </div>
-        </div>
+    {{-- Command Duty --}}
+    <input type="text" class="form-control @error('command_duty') is-invalid @enderror"
+           name="command_duty"
+           value="{{ old('command_duty', $employee->command_duty) }}">
 
-        <div class="d-flex gap-2 mb-5">
-            <button type="submit" class="btn btn-primary px-4">
-                <i class="bi bi-save"></i> ບັນທຶກການແກ້ໄຂ
-            </button>
-            <a href="{{ route('employees.show', $employee->id) }}" class="btn btn-secondary">
-                ຍົກເລີກ
-            </a>
-        </div>
+    {{-- Blood Group --}}
+    @foreach(['A','B','O','AB'] as $bg)
+        <input type="radio" name="blood_group" id="blood_{{ $bg }}" value="{{ $bg }}"
+               {{ old('blood_group', $employee->blood_group) == $bg ? 'checked' : '' }}>
+    @endforeach
 
-    </form>
+    {{-- ════════════════════════════════════════════
+         SECTION II · ສະຖານທີ່ເກີດ
+         Province is pre-selected via $bProvince in JS (edit_scripts.blade.php).
+         District is loaded by loadDistricts() on page load.
+    ════════════════════════════════════════════ --}}
+
+    {{-- Birth Province — value pre-set via JS, but keep selected in loop as fallback --}}
+    <select class="form-select select2 @error('birth_province_id') is-invalid @enderror"
+            name="birth_province_id" id="birthProvince">
+        <option value="">-- ເລືອກແຂວງ --</option>
+        @foreach($provinces as $p)
+            <option value="{{ $p->id }}"
+                {{ old('birth_province_id', $employee->birth_province_id) == $p->id ? 'selected' : '' }}>
+                {{ $p->name }}
+            </option>
+        @endforeach
+    </select>
+
+    {{-- Birth District — populated via AJAX in JS --}}
+    <select class="form-select select2 @error('birth_district_id') is-invalid @enderror"
+            name="birth_district_id" id="birthDistrict">
+        <option value="">-- ເລືອກເມືອງ --</option>
+        {{-- Options injected by loadDistricts() in JS --}}
+    </select>
+
+    {{-- Birth Village --}}
+    <input type="text" class="form-control @error('birth_village') is-invalid @enderror"
+           name="birth_village"
+           value="{{ old('birth_village', $employee->birth_village) }}">
+
+    {{-- ════════════════════════════════════════════
+         SECTION III · ທີ່ຢູ່ປັດຈຸບັນ
+    ════════════════════════════════════════════ --}}
+
+    <select class="form-select select2 @error('current_province_id') is-invalid @enderror"
+            name="current_province_id" id="currentProvince">
+        <option value="">-- ເລືອກແຂວງ --</option>
+        @foreach($provinces as $p)
+            <option value="{{ $p->id }}"
+                {{ old('current_province_id', $employee->current_province_id) == $p->id ? 'selected' : '' }}>
+                {{ $p->name }}
+            </option>
+        @endforeach
+    </select>
+
+    <select class="form-select select2 @error('current_district_id') is-invalid @enderror"
+            name="current_district_id" id="currentDistrict">
+        <option value="">-- ເລືອກເມືອງ --</option>
+    </select>
+
+    <input type="text" class="form-control @error('current_village') is-invalid @enderror"
+           name="current_village" id="currentVillage"
+           value="{{ old('current_village', $employee->current_village) }}">
+
+    {{-- ════════════════════════════════════════════
+         SECTION IV · ການສຶກສາ
+    ════════════════════════════════════════════ --}}
+
+    <input type="text" class="form-control" name="culture_level"
+           value="{{ old('culture_level', $employee->culture_level) }}">
+    <input type="text" class="form-control" name="theory_level"
+           value="{{ old('theory_level', $employee->theory_level) }}">
+    <input type="text" class="form-control" name="theory_from"
+           value="{{ old('theory_from', $employee->theory_from) }}">
+    <input type="text" class="form-control" name="profession_level"
+           value="{{ old('profession_level', $employee->profession_level) }}">
+    <input type="text" class="form-control" name="profession_from"
+           value="{{ old('profession_from', $employee->profession_from) }}">
+
+    {{-- ════════════════════════════════════════════
+         SECTION V · ສັນຊາດ / ຊົນເຜົ່າ
+    ════════════════════════════════════════════ --}}
+
+    <input type="text" class="form-control" name="nationality"
+           value="{{ old('nationality', $employee->nationality) }}">
+    <input type="text" class="form-control" name="ethnicity_group"
+           value="{{ old('ethnicity_group', $employee->ethnicity_group) }}">
+    <input type="text" class="form-control" name="tribe"
+           value="{{ old('tribe', $employee->tribe) }}">
+    <input type="text" class="form-control" name="religion"
+           value="{{ old('religion', $employee->religion) }}">
+    <input type="text" class="form-control" name="class_before_1975"
+           value="{{ old('class_before_1975', $employee->class_before_1975) }}">
+    <input type="text" class="form-control" name="class_after_1975"
+           value="{{ old('class_after_1975', $employee->class_after_1975) }}">
+
+    {{-- ════════════════════════════════════════════
+         SECTION VI · ວັນທີສຳຄັນ
+    ════════════════════════════════════════════ --}}
+
+    @php
+        $dateFields = [
+            'join_revolution_date' => 'ວັນເຂົ້າປະຕິວັດ',
+            'join_army_date'       => 'ວັນເຂົ້າທະຫານ',
+            'candidate_party_date' => 'ວັນເຂົ້າພັກສຳຮອງ',
+            'full_party_date'      => 'ວັນເຂົ້າພັກສົມບູນ',
+            'current_rank_date'    => 'ວັນໄດ້ຊັ້ນປັດຈຸບັນ',
+        ];
+    @endphp
+
+    @foreach($dateFields as $field => $label)
+        <input type="date" class="form-control @error($field) is-invalid @enderror"
+               name="{{ $field }}"
+               value="{{ old($field, $employee->$field?->format('Y-m-d')) }}">
+    @endforeach
+
+    {{-- ════════════════════════════════════════════
+         SECTION VII · ຄອບຄົວ ແລະ ວິໄນ
+    ════════════════════════════════════════════ --}}
+
+    <input type="text" class="form-control" name="parents_name"
+           value="{{ old('parents_name', $employee->parents_name) }}">
+    <input type="text" class="form-control" name="spouse_name"
+           value="{{ old('spouse_name', $employee->spouse_name) }}">
+
+    {{-- child_count — seeded from DB on first load --}}
+    <input type="number" class="form-control" name="child_count" id="childCount"
+           min="0" max="10"
+           value="{{ old('child_count', $employee->children->count()) }}">
+
+    <div id="childrenContainer" class="mt-3"></div>
+    {{-- Children rows are rendered by renderChildren(oldChildCount) in JS --}}
+
+    <textarea class="form-control @error('previous_units') is-invalid @enderror"
+              name="previous_units" rows="3">{{ old('previous_units', $employee->previous_units) }}</textarea>
+
+    <textarea class="form-control @error('discipline_record') is-invalid @enderror"
+              name="discipline_record" rows="3">{{ old('discipline_record', $employee->discipline_record) }}</textarea>
+
+    {{-- ════════════════════════════════════════════
+         SECTION VIII · ປະຫວັດ
+    ════════════════════════════════════════════ --}}
+
+    <textarea class="form-control @error('biography') is-invalid @enderror"
+              name="biography" rows="6">{{ old('biography', $employee->biography) }}</textarea>
+
+</form>
 </div>
 @endsection
 
@@ -402,7 +319,7 @@ $(document).ready(function () {
     });
 
     // Restore existing district values on page load
-    @if($employee->birth_province_id)
+    /* @if($employee->birth_province_id)
         $('#birthProvince').val('{{ $employee->birth_province_id }}').trigger('change.select2');
         loadDistricts('{{ $employee->birth_province_id }}', '#birthDistrict', '{{ $employee->birth_district_id }}');
     @endif
@@ -410,10 +327,20 @@ $(document).ready(function () {
     @if($employee->current_province_id)
         $('#currentProvince').val('{{ $employee->current_province_id }}').trigger('change.select2');
         loadDistricts('{{ $employee->current_province_id }}', '#currentDistrict', '{{ $employee->current_district_id }}');
+    @endif */
+
+    @php
+        $bProvince = old('birth_province_id', $employee->birth_province_id ?? null);
+        $bDistrict = old('birth_district_id',  $employee->birth_district_id ?? null);
+    @endphp
+    @if($bProvince)
+        loadDistricts('{{ $bProvince }}', '#birthDistrict', '{{ $bDistrict }}');
     @endif
 
+
+
     // ===== Dynamic children rows =====
-    const existingChildren = @json($employee->children ?? []);
+    const existingChildren = @json($employeeChildren);
 
     function renderChildren(count) {
         const container = document.getElementById('childrenContainer');
@@ -440,8 +367,8 @@ $(document).ready(function () {
                     <div class="col-md-2">
                         <select class="form-select form-select-sm" name="children[${i}][gender]">
                             <option value="">ເພດ</option>
-                            <option value="ຊາຍ" ${c.gender === 'ຊາຍ' ? 'selected' : ''}>ຊາຍ</option>
-                            <option value="ຍິງ" ${c.gender === 'ຍິງ' ? 'selected' : ''}>ຍິງ</option>
+                            <option value="male" ${c.gender === 'male' ? 'selected' : ''}>ຊາຍ</option>
+                            <option value="female" ${c.gender === 'female' ? 'selected' : ''}>ຍິງ</option>
                         </select>
                     </div>
                     <div class="col-md-2">
@@ -459,7 +386,9 @@ $(document).ready(function () {
     });
 
     // Load existing children on page open
-    renderChildren({{ $employee->child_count ?? 0 }});
-});
+    // renderChildren({{ $employee->child_count ?? 0 }});
+    const oldChildCount = parseInt("{{ old('child_count', $employee->children->count()) }}") || 0;
+        renderChildren(oldChildCount);
+    });
 </script>
 @endpush

@@ -42,9 +42,8 @@ class LoginController extends Controller
 
             $request->session()->regenerate();
 
-            return $user->role === 'admin'
-                ? redirect()->intended(route('users.index'))
-                : redirect()->intended('/');
+            // return $user->role === 'admin' ? redirect()->intended(route('/')) : redirect()->intended('/');
+            return redirect()->intended('/');
         }
 
         throw ValidationException::withMessages([
