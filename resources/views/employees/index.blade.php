@@ -1,5 +1,13 @@
 @extends('layouts.mainLayout')
 
+@push('styles')
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css">
+<style>
+    .photo-thumb { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; }
+    .photo-thumb:hover { transform: scale(1.12); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+</style>
+@endpush
+
 @section('content')
 <div class="row mt-4">
     <h4 class="mb-4"><i class="bi bi-person-check me-2"></i>ຄົ້ນຫາຂໍ້ມູນພະນັກງານ</h4>
@@ -91,10 +99,15 @@
                                 {{-- PHOTO — use model accessor $employee->photoUrl --}}
                                 <td>
                                     @if($employee->photo)
-                                        <img src="{{ $employee->photoUrl }}"
-                                             alt="photo"
-                                             class="rounded-circle object-fit-cover"
-                                             style="width:36px;height:36px;border:2px solid #e2e8f0;">
+                                        <a href="{{ $employee->photoUrl }}"
+                                           class="glightbox photo-thumb"
+                                           data-gallery="employees"
+                                           data-title="{{ $employee->full_name }}">
+                                            <img src="{{ $employee->photoUrl }}"
+                                                 alt="{{ $employee->full_name }}"
+                                                 class="rounded-circle object-fit-cover"
+                                                 style="width:36px;height:36px;border:2px solid #e2e8f0;">
+                                        </a>
                                     @else
                                         <span class="d-inline-flex align-items-center justify-content-center
                                             rounded-circle bg-secondary text-white"
@@ -206,7 +219,10 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
 <script>
+GLightbox({ selector: '.glightbox', touchNavigation: true, loop: true });
+
 document.querySelectorAll('.btn-delete').forEach(function (btn) {
     btn.addEventListener('click', function () {
         const name   = this.dataset.name;

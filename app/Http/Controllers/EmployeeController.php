@@ -230,17 +230,7 @@ class EmployeeController extends Controller
 
     public function update(Request $request, Employee $employee): RedirectResponse
     {
-        \Log::info('=== UPDATE PHOTO DEBUG ===', [
-            'hasFile'   => $request->hasFile('photo'),
-            'allFiles'  => array_keys($request->allFiles()),
-            'fileValid' => $request->hasFile('photo') ? $request->file('photo')->isValid() : 'no file',
-            'fileError' => $request->hasFile('photo') ? $request->file('photo')->getError() : 'no file',
-            'fileMime'  => $request->hasFile('photo') ? $request->file('photo')->getMimeType() : 'no file',
-            'fileSize'  => $request->hasFile('photo') ? $request->file('photo')->getSize() : 'no file',
-            'contentType' => $request->header('Content-Type'),
-        ]);
-
-        $validated = $request->validate($this->rules($employee->id));
+$validated = $request->validate($this->rules($employee->id));
 
         if ((int) $request->input('child_count', 0) > 0) {
             $request->validate($this->childrenRules());

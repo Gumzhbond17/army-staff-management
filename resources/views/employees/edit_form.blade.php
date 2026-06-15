@@ -129,7 +129,7 @@
     }
     .photo-upload-area:hover { border-color: #6366f1; background: rgba(99,102,241,0.07); }
     .photo-upload-area input[type="file"] {
-        position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+        position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 10;
     }
     .photo-preview {
         width: 90px; height: 110px;
@@ -328,6 +328,7 @@
                                 <p class="mb-0 text-muted" style="font-size:0.75rem;">ກົດເພື່ອອັບໂຫຼດ<br><span class="text-primary">JPG, PNG</span></p>
                             </div>
                         </div>
+                        <p id="photoFileName" class="text-muted mt-1 mb-0" style="font-size:0.7rem; text-align:center; display:none;"></p>
                     </div>
 
                     <div class="col-lg-10 col-md-9">
@@ -851,12 +852,14 @@
 
     function previewPhoto(input) {
         if (input.files && input.files[0]) {
+            const file = input.files[0];
             const reader = new FileReader();
             reader.onload = e => {
                 $('#photoPreview').attr('src', e.target.result).show();
                 $('#uploadPlaceholder').hide();
+                $('#photoFileName').text('✓ ' + file.name).show();
             };
-            reader.readAsDataURL(input.files[0]);
+            reader.readAsDataURL(file);
         }
     }
 
