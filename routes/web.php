@@ -3,8 +3,10 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DistrictController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RankController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\StaffCategoryController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
@@ -39,12 +41,21 @@ Route::middleware(['auth', 'active'])->group(function () {
         ->name('provinces.districts');
 
     Route::resource('districts', DistrictController::class);
+    Route::get('/employees/export/excel', [EmployeeController::class, 'exportExcel'])->name('employees.export.excel');
+    Route::get('/employees/export/csv',   [EmployeeController::class, 'exportCsv'])->name('employees.export.csv');
     Route::resource('employees', EmployeeController::class);
     Route::resource('ranks', RankController::class);
     Route::resource('units', UnitController::class);
     Route::resource('provinces', ProvinceController::class);
     Route::resource('staff-categories', StaffCategoryController::class);
     Route::resource('working-statuses', WorkingStatusController::class);
+
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    // Profile routes (all authenticated users)
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::put('/profile', [ProfileController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
     // Admin-only routes
     Route::middleware('role:admin')->group(function () {

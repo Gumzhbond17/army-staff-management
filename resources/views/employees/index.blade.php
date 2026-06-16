@@ -61,10 +61,22 @@
                     </a>
                 </form>
 
-                <button type="button" class="btn btn-success d-flex align-items-center gap-1"
-                    onclick="location.href='{{ route('employees.create') }}'">
-                    <i class="bi bi-plus-lg me-1"></i> ເພີ່ມຂໍ້ມູນ
-                </button>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ route('employees.export.excel', request()->query()) }}"
+                       class="btn btn-outline-success d-flex align-items-center gap-1"
+                       title="ສົ່ງອອກ Excel">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Excel
+                    </a>
+                    <a href="{{ route('employees.export.csv', request()->query()) }}"
+                       class="btn btn-outline-secondary d-flex align-items-center gap-1"
+                       title="ສົ່ງອອກ CSV">
+                        <i class="bi bi-filetype-csv me-1"></i> CSV
+                    </a>
+                    <button type="button" class="btn btn-success d-flex align-items-center gap-1"
+                        onclick="location.href='{{ route('employees.create') }}'">
+                        <i class="bi bi-plus-lg me-1"></i> ເພີ່ມຂໍ້ມູນ
+                    </button>
+                </div>
             </div>
         </div>
 

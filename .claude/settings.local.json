@@ -4,7 +4,8 @@
       "PowerShell(php -r \"echo 'upload_tmp_dir: ' . \\(ini_get\\('upload_tmp_dir'\\) ?: sys_get_temp_dir\\(\\)\\) . PHP_EOL; echo 'upload_max_filesize: ' . ini_get\\('upload_max_filesize'\\) . PHP_EOL; echo 'post_max_size: ' . ini_get\\('post_max_size'\\) . PHP_EOL; echo 'file_uploads: ' . ini_get\\('file_uploads'\\) . PHP_EOL;\")",
       "PowerShell(Get-ChildItem \"$env:USERPROFILE\\\\.config\\\\herd\" -Recurse -Filter \"php.ini\" 2>$null | Select-Object FullName | Select-Object -First 5; Get-ChildItem \"C:\\\\ProgramData\\\\Herd\" -Recurse -Filter \"php.ini\" -ErrorAction SilentlyContinue | Select-Object FullName | Select-Object -First 5)",
       "PowerShell(herd restart php 2>&1)",
-      "PowerShell(& \"C:\\\\Program Files\\\\Herd\\\\resources\\\\cli\\\\bin\\\\herd\" restart 2>&1)"
+      "PowerShell(& \"C:\\\\Program Files\\\\Herd\\\\resources\\\\cli\\\\bin\\\\herd\" restart 2>&1)",
+      "Bash(composer require *)"
     ]
   }
 }

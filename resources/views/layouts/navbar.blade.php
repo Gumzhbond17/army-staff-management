@@ -81,7 +81,7 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="#">
+                    <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.index') }}">
                         <i class="bi bi-file-earmark-bar-graph me-1"></i>ລາຍງານຂໍ້ມູນ
                     </a>
                 </li>
@@ -89,22 +89,23 @@
             </ul>
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                        aria-expanded="false">
-                        <i class="bi bi-person-circle me-1"></i> ຊື່ຜູ້ໃຊ້ລະບົບ
+                    <a class="nav-link dropdown-toggle {{ request()->routeIs('profile.*') ? 'active' : '' }}"
+                        href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person-circle me-1"></i> {{ auth()->user()?->name }}
                     </a>
                     <ul class="dropdown-menu">
                         <li>
-                            <a class="dropdown-item" href="#">
+                            <a class="dropdown-item {{ request()->routeIs('profile.index') ? 'active' : '' }}"
+                                href="{{ route('profile.index') }}">
                                 <i class="bi bi-person-square me-2"></i>ແກ້ໄຂໂປຣຟາຍ
                             </a>
                         </li>
-                        <li>
-                            <a class="dropdown-item" href="#">
-                                <i class="bi bi-lock me-1"></i>
-                                ປ່ຽນລະຫັດຜ່ານ
+                        {{-- <li>
+                            <a class="dropdown-item {{ request()->routeIs('profile.index') ? 'active' : '' }}"
+                                href="{{ route('profile.index') }}#change-password">
+                                <i class="bi bi-lock me-1"></i>ປ່ຽນລະຫັດຜ່ານ
                             </a>
-                        </li>
+                        </li> --}}
                         <li>
                             <a class="dropdown-item text-danger" href="#"
                                 onclick="event.preventDefault(); document.getElementById('logout-form').submit();">

@@ -284,7 +284,7 @@
                 <div class="photo-divider"></div>
 
                 {{-- Fields --}}
-                <div class="flex-grow-1">
+                <div class="grow">
                     <div class="row g-3">
                         <div class="col-md-3 info-item">
                             <div class="info-label">ເພດ</div>

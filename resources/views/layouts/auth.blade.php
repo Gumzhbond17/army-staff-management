@@ -10,7 +10,7 @@
     {{-- Bootstrap 5.3.8 --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     {{-- Google Fonts --}}
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 
     <style>
         * {
@@ -20,7 +20,7 @@
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             min-height: 100vh;
             background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             display: flex;
@@ -122,7 +122,7 @@
             border-radius: 10px !important;
             color: #ffffff !important;
             font-size: 0.9rem;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             transition: border-color 0.2s, background 0.2s;
         }
 
@@ -181,7 +181,7 @@
             color: #fff;
             font-size: 0.95rem;
             font-weight: 500;
-            font-family: 'Outfit', sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             letter-spacing: 0.2px;
             cursor: pointer;
             box-shadow: 0 4px 18px rgba(124, 58, 237, 0.4);
