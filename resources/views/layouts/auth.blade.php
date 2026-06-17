@@ -6,11 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name'))</title>
+    <link rel="icon" type="image/png" href="{{ asset('assets/images/lao-army-logo.png') }}">
 
     {{-- Bootstrap 5.3.8 --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
-    {{-- Google Fonts --}}
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    {{-- Google Sans --}}
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
 
     <style>
         * {
@@ -20,7 +21,7 @@
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Google Sans', sans-serif;
             min-height: 100vh;
             background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
             display: flex;
@@ -122,7 +123,7 @@
             border-radius: 10px !important;
             color: #ffffff !important;
             font-size: 0.9rem;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Google Sans', sans-serif;
             transition: border-color 0.2s, background 0.2s;
         }
 
@@ -181,7 +182,7 @@
             color: #fff;
             font-size: 0.95rem;
             font-weight: 500;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-family: 'Google Sans', sans-serif;
             letter-spacing: 0.2px;
             cursor: pointer;
             box-shadow: 0 4px 18px rgba(124, 58, 237, 0.4);

@@ -62,7 +62,7 @@ class Employee extends Model
      */
     public function workingStatus()
     {
-        return $this->belongsTo(WorkingStatus::class);
+        return $this->belongsTo(WorkingStatus::class, 'work_status_id');
     }
 
     // Alias so show.blade.php $employee->workStatus->name works too

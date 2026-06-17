@@ -4,48 +4,6 @@
 
 @push('styles')
 <style>
-    .profile-hero {
-        background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #4c1d95 100%);
-        padding: 2.5rem 0 3.5rem;
-        margin-bottom: -2.5rem;
-        position: relative;
-    }
-
-    .profile-avatar {
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 3px solid rgba(255, 255, 255, 0.6);
-    }
-
-    .profile-avatar-placeholder {
-        width: 90px;
-        height: 90px;
-        border-radius: 50%;
-        border: 3px solid rgba(255, 255, 255, 0.6);
-        background: rgba(255,255,255,0.12);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 2.2rem;
-        color: rgba(255,255,255,0.7);
-        margin: 0 auto;
-    }
-
-    .profile-hero-name {
-        color: #fff;
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-top: 0.6rem;
-        margin-bottom: 0;
-    }
-
-    .profile-hero-role {
-        color: rgba(255,255,255,0.6);
-        font-size: 0.85rem;
-        margin-top: 0.25rem;
-    }
 
     .profile-card {
         background: #fff;
@@ -95,25 +53,29 @@
         padding: 1.5rem;
     }
 
-    .profile-photo-preview {
-        width: 64px;
-        height: 64px;
+    .profile-avatar-card {
+        width: 120px;
+        height: 120px;
         border-radius: 50%;
         object-fit: cover;
-        border: 2px solid #e5e7eb;
+        border: 4px solid #fff;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.13);
+        flex-shrink: 0;
     }
 
-    .profile-photo-placeholder {
-        width: 64px;
-        height: 64px;
+    .profile-avatar-card-placeholder {
+        width: 120px;
+        height: 120px;
         border-radius: 50%;
-        background: #f3f4f6;
-        border: 2px solid #e5e7eb;
+        background: #ede9fe;
+        border: 4px solid #fff;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.6rem;
-        color: #9ca3af;
+        font-size: 3rem;
+        color: #7c3aed;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.10);
+        flex-shrink: 0;
     }
 
     .form-label {
@@ -173,28 +135,12 @@
 
 @section('content')
 
-{{-- Hero Banner (full-width, outside .container padding) --}}
-<div class="profile-hero text-center" style="margin-left: -12px; margin-right: -12px;">
-    @if ($profile->photo)
-        <img src="{{ $profile->photo_url }}" alt="avatar" class="profile-avatar">
-    @else
-        <div class="profile-avatar-placeholder">
-            <i class="bi bi-person-fill"></i>
-        </div>
-    @endif
-    <p class="profile-hero-name">{{ $user->name }}</p>
-    <p class="profile-hero-role">
-        @if ($profile->job_title){{ $profile->job_title }} &nbsp;·&nbsp; @endif
-        <span class="badge-role {{ $user->isAdmin() ? 'badge-admin' : 'badge-normal' }}">
-            {{ $user->isAdmin() ? 'ແອດມິນ' : 'ຜູ້ໃຊ້ທົ່ວໄປ' }}
-        </span>
-    </p>
-</div>
 
 <div class="py-4">
 
     {{-- ── USER PROFILE ─────────────────────────────────── --}}
     <div class="profile-card">
+
         <div class="profile-card-header">
             <div class="profile-card-icon">
                 <i class="bi bi-person-fill"></i>
@@ -217,34 +163,37 @@
                 @method('PUT')
 
                 {{-- Photo --}}
-                <div class="mb-3">
-                    <label class="form-label">ຮູບໂປຣຟາຍ</label>
-                    <div class="d-flex align-items-center gap-3">
+                <div class="mb-4 d-flex align-items-center justify-content-center gap-4">
+                    <div class="text-center">
                         @if ($profile->photo)
                             <img src="{{ $profile->photo_url }}" alt="preview"
-                                 class="profile-photo-preview" id="photoPreview">
+                                 class="profile-avatar-card" id="photoPreview">
                         @else
-                            <div class="profile-photo-placeholder" id="photoPlaceholder">
+                            <div class="profile-avatar-card-placeholder" id="photoPlaceholder">
                                 <i class="bi bi-person-fill"></i>
                             </div>
                             <img src="" alt="preview"
-                                 class="profile-photo-preview d-none" id="photoPreview">
+                                 class="profile-avatar-card d-none" id="photoPreview">
                         @endif
-                        <div>
-                            <input type="file" name="photo" id="photoInput" accept="image/*"
-                                class="form-control @error('photo') is-invalid @enderror"
-                                style="max-width: 260px; font-size:0.85rem;">
-                            <div class="form-text" style="font-size:0.75rem;">
-                                JPG, PNG, WEBP · ສູງສຸດ 2MB
-                            </div>
-                            @error('photo')
-                                <div class="invalid-feedback d-block">{{ $message }}</div>
-                            @enderror
+                        <p class="mt-2 mb-0 fw-semibold" style="font-size:0.9rem; color:#111827;">{{ $user->name }}</p>
+                        <p class="mb-0" style="font-size:0.78rem; color:#9ca3af;">{{ $profile->job_title ?? '' }}</p>
+                    </div>
+
+                    <div>
+                        <label class="form-label">ຮູບໂປຣຟາຍ</label>
+                        <input type="file" name="photo" id="photoInput" accept="image/*"
+                            class="form-control @error('photo') is-invalid @enderror"
+                            style="max-width: 280px; font-size:0.85rem;">
+                        <div class="form-text" style="font-size:0.75rem;">
+                            JPG, PNG, WEBP · ສູງສຸດ 2MB
                         </div>
+                        @error('photo')
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
 
-                <div class="row g-3">
+                <div class="row g-4">
                     {{-- Name --}}
                     <div class="col-md-6">
                         <label class="form-label" for="name">
@@ -341,7 +290,7 @@
                 @csrf
                 @method('PUT')
 
-                <div class="row g-3">
+                <div class="row g-4">
                     {{-- Current password --}}
                     <div class="col-12">
                         <label class="form-label" for="current_password">

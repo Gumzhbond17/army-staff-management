@@ -50,8 +50,29 @@
             {{-- Password --}}
             <div class="mb-3">
                 <label class="glass-label" for="password">ລະຫັດຜ່ານ</label>
-                <input id="password" type="password" name="password" required autocomplete="current-password"
-                    placeholder="••••••••" class="glass-input @error('password') is-invalid @enderror">
+                <div style="position: relative;">
+                    <input id="password" type="password" name="password" required autocomplete="current-password"
+                        placeholder="••••••••"
+                        class="glass-input @error('password') is-invalid @enderror"
+                        style="padding-right: 44px;">
+                    <button type="button" id="togglePassword" aria-label="Toggle password visibility"
+                        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;padding:0;cursor:pointer;color:rgba(255,255,255,0.45);display:flex;align-items:center;">
+                        {{-- Eye open (shown when password is hidden) --}}
+                        <svg id="iconEyeOpen" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5s8.268 2.943 9.542 7c-1.274 4.057-5.065 7-9.542 7S3.732 16.057 2.458 12z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        {{-- Eye closed (hidden by default) --}}
+                        <svg id="iconEyeClosed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" style="display:none;">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.186-3.716M6.53 6.53A9.97 9.97 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.97 9.97 0 01-4.12 5.317M6.53 6.53L3 3m3.53 3.53l11.94 11.94M17.47 17.47L21 21" />
+                        </svg>
+                    </button>
+                </div>
                 @error('password')
                     <div class="invalid-feedback d-block mt-1">{{ $message }}</div>
                 @enderror
@@ -81,3 +102,19 @@
         @endif --}}
     </div>
 @endsection
+
+@push('scripts')
+<script>
+    const toggleBtn = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+    const iconOpen = document.getElementById('iconEyeOpen');
+    const iconClosed = document.getElementById('iconEyeClosed');
+
+    toggleBtn.addEventListener('click', function () {
+        const isHidden = passwordInput.type === 'password';
+        passwordInput.type = isHidden ? 'text' : 'password';
+        iconOpen.style.display = isHidden ? 'none' : 'block';
+        iconClosed.style.display = isHidden ? 'block' : 'none';
+    });
+</script>
+@endpush

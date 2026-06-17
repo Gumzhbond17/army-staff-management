@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Profile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rules\Password;
@@ -14,7 +15,7 @@ class ProfileController extends Controller
 {
     public function index(): View
     {
-        $user    = auth()->user();
+        $user    = Auth::user();
         $profile = $user->profile ?? new Profile(['user_id' => $user->id]);
 
         return view('profiles.index', compact('user', 'profile'));
@@ -22,7 +23,7 @@ class ProfileController extends Controller
 
     public function updateProfile(Request $request): RedirectResponse
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         $request->validate([
             'name'      => ['required', 'string', 'max:255'],
@@ -63,7 +64,7 @@ class ProfileController extends Controller
             'password'         => ['required', 'confirmed', Password::min(8)],
         ]);
 
-        $user = auth()->user();
+        $user = Auth::user();
 
         if (! Hash::check($request->current_password, $user->password)) {
             return back()
