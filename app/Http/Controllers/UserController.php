@@ -104,7 +104,7 @@ class UserController extends Controller
             return back()->withErrors(['error' => 'ທ່ານບໍ່ສາມາດລຶບບັນຊີຂອງຕົນເອງໄດ້']);
         }
 
-        $user->delete();
+        $user->delete(true);
 
         return redirect()->route('users.index')->with('success', 'ລຶບຂໍ້ມູນຜູ້ໃຊ້ສຳເລັດແລ້ວ');
     }

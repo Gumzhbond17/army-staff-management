@@ -118,7 +118,7 @@ class EmployeeController extends Controller
         $query           = $this->buildExportQuery($request);
         $employees       = $query->paginate(20)->withQueryString();
         $units           = Unit::orderBy('name', 'asc')->get();
-        $workingStatuses = WorkingStatus::orderBy('name')->get();
+        $workingStatuses = WorkingStatus::orderBy('name','asc')->get();
 
         return view('employees.index', compact('employees', 'units', 'workingStatuses'));
     }
@@ -436,9 +436,9 @@ class EmployeeController extends Controller
 
     public function create(): View
     {
-        $provinces       = Province::orderBy('name')->get();
+        $provinces       = Province::orderBy('name','asc')->get();
         $units           = Unit::orderBy('name', 'asc')->get();
-        $workingStatuses = WorkingStatus::orderBy('name')->get();
+        $workingStatuses = WorkingStatus::orderBy('name','asc')->get();
 
         return view('employees.create', compact('provinces', 'units', 'workingStatuses'));
     }
@@ -583,7 +583,7 @@ class EmployeeController extends Controller
         }
 
         $employee->children()->delete();
-        $employee->delete();
+        $employee->delete(true);
 
         return redirect()
             ->route('employees.index')
@@ -597,8 +597,8 @@ class EmployeeController extends Controller
     public function importForm(): View
     {
         return view('employees.import', [
-            'units'        => Unit::orderBy('name')->pluck('name'),
-            'workStatuses' => WorkingStatus::orderBy('name')->pluck('name'),
+            'units'        => Unit::orderBy('name','asc')->pluck('name'),
+            'workStatuses' => WorkingStatus::orderBy('name','asc')->pluck('name'),
         ]);
     }
 
