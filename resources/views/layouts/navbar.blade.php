@@ -75,7 +75,7 @@
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="#">
+                    <a class="nav-link {{ request()->routeIs('employees.import*') ? 'active' : '' }}" href="{{ route('employees.import') }}">
                         <i class="bi bi-file-earmark-arrow-down me-1"></i>ນຳເຂົ້າຂໍ້ມູນ
                     </a>
                 </li>

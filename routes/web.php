@@ -41,9 +41,13 @@ Route::middleware(['auth', 'active'])->group(function () {
         ->name('provinces.districts');
 
     Route::resource('districts', DistrictController::class);
-    Route::get('/employees/export/excel', [EmployeeController::class, 'exportExcel'])->name('employees.export.excel');
-    Route::get('/employees/export/csv',   [EmployeeController::class, 'exportCsv'])->name('employees.export.csv');
-    Route::resource('employees', EmployeeController::class);
+    Route::get('/employees/export/excel',    [EmployeeController::class, 'exportExcel'])->name('employees.export.excel');
+    Route::get('/employees/export/csv',      [EmployeeController::class, 'exportCsv'])->name('employees.export.csv');
+    Route::get('/employees/import',          [EmployeeController::class, 'importForm'])->name('employees.import');
+    Route::get('/employees/import/template', [EmployeeController::class, 'importTemplate'])->name('employees.import.template');
+    Route::post('/employees/import/preview', [EmployeeController::class, 'importPreview'])->name('employees.import.preview');
+    Route::post('/employees/import/submit',  [EmployeeController::class, 'importSubmit'])->name('employees.import.submit');
+    Route::resource('employees', EmployeeController::class)->only(['index', 'show', 'create', 'store']);
     Route::resource('ranks', RankController::class);
     Route::resource('units', UnitController::class);
     Route::resource('provinces', ProvinceController::class);
@@ -59,7 +63,10 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     // Admin-only routes
     Route::middleware('role:admin')->group(function () {
+        Route::resource('employees', EmployeeController::class)->only(['edit', 'update', 'destroy']);
         Route::resource('users', UserController::class)
             ->only(['index', 'store', 'update', 'destroy']);
+        Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])
+            ->name('users.reset-password');
     });
 });

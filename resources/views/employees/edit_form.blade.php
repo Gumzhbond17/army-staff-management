@@ -126,13 +126,19 @@
         cursor: pointer;
         transition: all 0.25s ease;
         position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
     .photo-upload-area:hover { border-color: #6366f1; background: rgba(99,102,241,0.07); }
     .photo-upload-area input[type="file"] {
         position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; z-index: 10;
     }
     .photo-preview {
-        width: 90px; height: 110px;
+        width: 100%;
+        max-width: 130px;
+        height: 150px;
         border-radius: 10px;
         object-fit: cover;
         border: 3px solid rgba(99,102,241,0.25);
@@ -314,7 +320,7 @@
                 <div class="row g-3">
 
                     {{-- Photo --}}
-                    <div class="col-lg-2 col-md-3 d-flex flex-column align-items-center">
+                    <div class="col-lg-2 col-md-3 d-flex flex-column justify-content-start">
                         <label class="form-label text-center w-100">ຮູບຖ່າຍ</label>
                         <div class="photo-upload-area w-100">
                             <input type="file" id="photoInput" name="photo" accept="image/*" onchange="previewPhoto(this)">
@@ -322,7 +328,7 @@
                                  class="photo-preview"
                                  src="{{ $existingPhoto ?? '#' }}"
                                  alt="preview"
-                                 style="{{ $existingPhoto ? 'display:block' : '' }}">
+                                 style="{{ $existingPhoto ? 'display:block; margin: 0 auto;' : 'margin: 0 auto;' }}">
                             <div id="uploadPlaceholder" style="{{ $existingPhoto ? 'display:none' : '' }}">
                                 <div class="upload-icon"><i class="bi bi-camera"></i></div>
                                 <p class="mb-0 text-muted" style="font-size:0.75rem;">ກົດເພື່ອອັບໂຫຼດ<br><span class="text-primary">JPG, PNG</span></p>
@@ -789,8 +795,8 @@
                 <h6>ໝວດ VIII · ປະຫວັດການເຄື່ອນໄຫວ</h6>
             </div>
             <div class="card-body-inner">
-                <div class="row g-3">
-                    <div class="col-12">
+                <div class="row g-3 align-items-start">
+                    <div class="col-lg-9 col-md-8">
                         <label class="form-label">
                             ປະຫວັດການເຄື່ອນໄຫວ
                             <span class="text-muted ms-1" style="font-size:0.73rem;">(ແຕ່ອາຍຸ 8 ປີ)</span>
@@ -799,6 +805,65 @@
                                   name="biography" rows="6"
                                   placeholder="ລະບຸປະຫວັດການເຄື່ອນໄຫວ ແຕ່ອາຍຸ 8 ປີ ຂຶ້ນໄປ...">{{ old('biography', $employee->biography) }}</textarea>
                         @error('biography')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-lg-3 col-md-4">
+                        <label class="form-label text-center w-100">ຮູບຖ່າຍ / ເອກະສານ</label>
+                        <div class="photo-upload-area w-100" id="attachmentUploadArea">
+                            <input type="file" id="attachmentInput" name="biography_attachment"
+                                   accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
+                                   onchange="previewAttachment(this)">
+
+                            {{-- Image preview (new upload or existing image) --}}
+                            @php
+                                $existingAttach = $employee->biography_attachment ?? null;
+                                $isImage = $existingAttach && preg_match('/\.(jpg|jpeg|png)$/i', $existingAttach);
+                            @endphp
+                            <img id="attachmentPreview" class="photo-preview"
+                                 src="{{ $isImage ? Storage::url($existingAttach) : '#' }}"
+                                 alt="preview"
+                                 style="width:100%; height:140px; object-fit:cover; {{ $isImage ? '' : 'display:none;' }}">
+
+                            {{-- Non-image existing file --}}
+                            <div id="attachmentFileInfo" style="{{ ($existingAttach && !$isImage) ? '' : 'display:none;' }} padding:0.75rem 0;">
+                                <div id="attachmentFileIcon" style="font-size:2.5rem; margin-bottom:0.35rem;">
+                                    @if($existingAttach && !$isImage)
+                                        @php $ext = strtolower(pathinfo($existingAttach, PATHINFO_EXTENSION)); @endphp
+                                        @if(in_array($ext, ['pdf']))
+                                            <i class="bi bi-file-earmark-pdf-fill" style="color:#ef4444;"></i>
+                                        @elseif(in_array($ext, ['doc','docx']))
+                                            <i class="bi bi-file-earmark-word-fill" style="color:#2563eb;"></i>
+                                        @elseif(in_array($ext, ['xls','xlsx']))
+                                            <i class="bi bi-file-earmark-excel-fill" style="color:#16a34a;"></i>
+                                        @else
+                                            <i class="bi bi-file-earmark-fill" style="color:#6366f1;"></i>
+                                        @endif
+                                    @endif
+                                </div>
+                                <p id="attachmentFileName" class="mb-0 text-muted"
+                                   style="font-size:0.72rem; word-break:break-all; padding:0 0.25rem;">
+                                    {{ $existingAttach ? basename($existingAttach) : '' }}
+                                </p>
+                                @if($existingAttach)
+                                <a href="{{ Storage::url($existingAttach) }}" target="_blank"
+                                   class="btn btn-sm btn-outline-primary mt-1" style="font-size:0.7rem;">
+                                    <i class="bi bi-eye me-1"></i>ເບິ່ງໄຟລ໌
+                                </a>
+                                @endif
+                            </div>
+
+                            {{-- Placeholder shown when no attachment --}}
+                            <div id="attachmentPlaceholder" style="{{ $existingAttach ? 'display:none;' : '' }}">
+                                <div class="upload-icon"><i class="bi bi-paperclip"></i></div>
+                                <p class="mb-0 text-muted" style="font-size:0.72rem; line-height:1.6;">
+                                    ກົດເພື່ອອັບໂຫຼດ<br>
+                                    <span class="text-primary">JPG · PNG · PDF<br>WORD · EXCEL</span>
+                                </p>
+                            </div>
+                        </div>
+                        @error('biography_attachment')
+                            <div class="text-danger mt-1" style="font-size:0.76rem;">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -860,6 +925,34 @@
                 $('#photoFileName').text('✓ ' + file.name).show();
             };
             reader.readAsDataURL(file);
+        }
+    }
+
+    function previewAttachment(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const ext  = file.name.split('.').pop().toLowerCase();
+
+        $('#attachmentPlaceholder').hide();
+        $('#attachmentPreview').hide();
+        $('#attachmentFileInfo').hide();
+
+        if (['jpg', 'jpeg', 'png'].includes(ext)) {
+            const reader = new FileReader();
+            reader.onload = e => { $('#attachmentPreview').attr('src', e.target.result).show(); };
+            reader.readAsDataURL(file);
+        } else {
+            const icons = {
+                pdf:  { cls: 'bi-file-earmark-pdf-fill',   color: '#ef4444' },
+                doc:  { cls: 'bi-file-earmark-word-fill',  color: '#2563eb' },
+                docx: { cls: 'bi-file-earmark-word-fill',  color: '#2563eb' },
+                xls:  { cls: 'bi-file-earmark-excel-fill', color: '#16a34a' },
+                xlsx: { cls: 'bi-file-earmark-excel-fill', color: '#16a34a' },
+            };
+            const ic = icons[ext] || { cls: 'bi-file-earmark-fill', color: '#6366f1' };
+            $('#attachmentFileIcon').html(`<i class="bi ${ic.cls}" style="color:${ic.color};"></i>`);
+            $('#attachmentFileName').text(file.name);
+            $('#attachmentFileInfo').show();
         }
     }
 

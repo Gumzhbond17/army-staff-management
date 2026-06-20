@@ -190,12 +190,11 @@
                                            class="btn btn-sm btn-outline-primary">
                                             <i class="bi bi-eye" style="font-size:13px;"></i>
                                         </a>
+                                        @if(auth()->user()->isAdmin())
                                         <a href="{{ route('employees.edit', $employee->id) }}"
                                            class="btn btn-sm btn-outline-info">
                                             <i class="bi bi-pencil" style="font-size:13px;"></i>
                                         </a>
-
-                                        {{-- BUG FIX: Hidden DELETE form — JS confirms then submits --}}
                                         <form id="del-{{ $employee->id }}"
                                               action="{{ route('employees.destroy', $employee->id) }}"
                                               method="POST" style="display:none;">
@@ -208,6 +207,7 @@
                                                 data-form="del-{{ $employee->id }}">
                                             <i class="bi bi-trash" style="font-size:13px;"></i>
                                         </button>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

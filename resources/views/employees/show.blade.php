@@ -241,16 +241,18 @@
             <p>{{ $employee->full_name }} · {{ $employee->unit->name ?? '' }}</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
-            <a href="{{ route('employees.edit', $employee->id) }}" class="btn-edit btn">
-                <i class="bi bi-pencil me-1"></i> ແກ້ໄຂ
-            </a>
-            <form action="{{ route('employees.destroy', $employee->id) }}" method="POST"
-                  onsubmit="return confirm('ທ່ານຕ້ອງການລຶບຂໍ້ມູນນີ້ແທ້ບໍ?')">
-                @csrf @method('DELETE')
-                <button type="submit" class="btn-delete btn">
-                    <i class="bi bi-trash me-1"></i> ລຶບ
-                </button>
-            </form>
+            @if(Auth::user()->isAdmin())
+                <a href="{{ route('employees.edit', $employee->id) }}" class="btn-edit btn">
+                    <i class="bi bi-pencil me-1"></i> ແກ້ໄຂ
+                </a>
+                <form action="{{ route('employees.destroy', $employee->id) }}" method="POST"
+                      onsubmit="return confirm('ທ່ານຕ້ອງການລຶບຂໍ້ມູນນີ້ແທ້ບໍ?')">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn-delete btn">
+                        <i class="bi bi-trash me-1"></i> ລຶບ
+                    </button>
+                </form>
+            @endif
             <a href="{{ route('employees.index') }}" class="btn-back btn">
                 <i class="bi bi-arrow-left me-1"></i> ກັບຄືນ
             </a>

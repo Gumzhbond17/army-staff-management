@@ -81,6 +81,21 @@ class UserController extends Controller
     }
 
     /**
+     * Reset a user's password (admin action).
+     */
+    public function resetPassword(Request $request, User $user): RedirectResponse
+    {
+        $request->validate([
+            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user->update(['password' => $request->input('new_password')]);
+
+        return redirect()->route('users.index')
+            ->with('success', 'ຣີເຊັດລະຫັດຜ່ານຂອງ ' . $user->name . ' ສຳເລັດແລ້ວ');
+    }
+
+    /**
      * Remove a user.
      */
     public function destroy(User $user): RedirectResponse

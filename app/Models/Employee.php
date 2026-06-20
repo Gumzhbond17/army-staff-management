@@ -28,7 +28,7 @@ class Employee extends Model
         // in the DB always stayed 0.
         'child_count',
 
-        'previous_units', 'discipline_record', 'biography',
+        'previous_units', 'discipline_record', 'biography', 'biography_attachment',
         'created_by', 'updated_by',
     ];
 
@@ -107,5 +107,10 @@ class Employee extends Model
     public function getPhotoUrlAttribute(): ?string
     {
         return $this->photo ? asset('storage/' . $this->photo) : null;
+    }
+
+    public function getBiographyAttachmentUrlAttribute(): ?string
+    {
+        return $this->biography_attachment ? asset('storage/' . $this->biography_attachment) : null;
     }
 }

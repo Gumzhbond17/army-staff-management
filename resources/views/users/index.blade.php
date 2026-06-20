@@ -44,7 +44,7 @@
                                 <th class="text-muted fw-medium" style="font-size:14px;">ສະຖານະ</th>
                                 <th class="text-muted fw-medium" style="font-size:14px;">ສ້າງວັນທີ</th>
                                 <th class="text-muted fw-medium" style="font-size:14px;">ແກ້ໄຂວັນທີ</th>
-                                <th class="text-muted fw-medium" style="font-size:14px; width:160px;">ຈັດການ</th>
+                                <th class="text-muted fw-medium" style="font-size:14px; width:220px;">ຈັດການ</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -82,7 +82,7 @@
                                         {{ $user->updated_at->format('Y-m-d H:i:s') }}
                                     </td>
                                     <td>
-                                        <div class="d-flex gap-2">
+                                        <div class="d-flex gap-1 flex-wrap">
                                             <button type="button"
                                                 class="btn btn-sm btn-outline-info d-inline-flex align-items-center gap-1 btn-edit"
                                                 data-id="{{ $user->id }}"
@@ -92,6 +92,13 @@
                                                 data-active="{{ $user->is_active ? '1' : '0' }}"
                                                 data-url="{{ route('users.update', $user->id) }}">
                                                 <i class="bi bi-pencil" style="font-size:13px;"></i> ແກ້ໄຂ
+                                            </button>
+                                            <button type="button"
+                                                class="btn btn-sm btn-outline-warning d-inline-flex align-items-center gap-1 btn-reset-pw"
+                                                data-id="{{ $user->id }}"
+                                                data-name="{{ $user->name }}"
+                                                data-url="{{ route('users.reset-password', $user->id) }}">
+                                                <i class="bi bi-key" style="font-size:13px;"></i> ຣີເຊັດ
                                             </button>
                                             <button type="button"
                                                 class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 btn-delete"
@@ -214,6 +221,81 @@
         @method('DELETE')
     </form>
 
+    {{-- ══════════════════════════════════════════
+         MODAL — Reset Password
+    ══════════════════════════════════════════ --}}
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+            <div class="modal-content">
+                <form id="resetPasswordForm" method="POST" action="">
+                    @csrf
+                    <input type="hidden" name="reset_user_id" id="inputResetUserId">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="bi bi-key me-2"></i>ຣີເຊັດລະຫັດຜ່ານ
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        @if ($errors->any() && old('reset_user_id'))
+                            <div class="alert alert-danger py-2">
+                                <ul class="mb-0 ps-3">
+                                    @foreach ($errors->all() as $error)
+                                        <li style="font-size:13px;">{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
+
+                        <p class="text-muted mb-3" style="font-size:13px;">
+                            ຜູ້ໃຊ້: <strong id="resetUserNameDisplay"></strong>
+                        </p>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">
+                                ລະຫັດຜ່ານໃໝ່ <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="new_password"
+                                    id="inputNewPassword" placeholder="ປ້ອນລະຫັດຜ່ານໃໝ່..." required minlength="8">
+                                <button class="btn btn-outline-secondary" type="button" id="toggleNewPw">
+                                    <i class="bi bi-eye" id="iconNewPw"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label fw-medium">
+                                ຢືນຢັນລະຫັດຜ່ານ <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="new_password_confirmation"
+                                    id="inputNewPasswordConfirm" placeholder="ຢືນຢັນລະຫັດຜ່ານ..." required minlength="8">
+                                <button class="btn btn-outline-secondary" type="button" id="toggleConfirmPw">
+                                    <i class="bi bi-eye" id="iconConfirmPw"></i>
+                                </button>
+                            </div>
+                            <div id="pwMatchError" class="text-danger mt-1" style="font-size:12px; display:none;">
+                                ລະຫັດຜ່ານບໍ່ຕົງກັນ
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="bi bi-x-lg me-1"></i> ຍົກເລີກ
+                        </button>
+                        <button type="submit" class="btn btn-warning text-white">
+                            <i class="bi bi-key me-1"></i> ຣີເຊັດລະຫັດ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         function waitForBootstrap(callback) {
@@ -282,6 +364,74 @@
                 bsModal.show();
             });
 
+            // ── RESET PASSWORD ────────────────────────────────────────
+            var resetPwModalEl  = document.getElementById('resetPasswordModal');
+            var resetPwForm     = document.getElementById('resetPasswordForm');
+            var resetUserName   = document.getElementById('resetUserNameDisplay');
+            var inputNewPw      = document.getElementById('inputNewPassword');
+            var inputNewPwConf  = document.getElementById('inputNewPasswordConfirm');
+            var pwMatchError    = document.getElementById('pwMatchError');
+            var bsResetModal    = new bootstrap.Modal(resetPwModalEl);
+
+            document.addEventListener('click', function (e) {
+                var btn = e.target.closest('.btn-reset-pw');
+                if (!btn) return;
+
+                resetUserName.textContent       = btn.getAttribute('data-name');
+                resetPwForm.action              = btn.getAttribute('data-url');
+                document.getElementById('inputResetUserId').value = btn.getAttribute('data-id');
+                inputNewPw.value                = '';
+                inputNewPwConf.value            = '';
+                pwMatchError.style.display      = 'none';
+
+                bsResetModal.show();
+            });
+
+            // Password visibility toggles
+            document.getElementById('toggleNewPw').addEventListener('click', function () {
+                var icon = document.getElementById('iconNewPw');
+                if (inputNewPw.type === 'password') {
+                    inputNewPw.type = 'text';
+                    icon.classList.replace('bi-eye', 'bi-eye-slash');
+                } else {
+                    inputNewPw.type = 'password';
+                    icon.classList.replace('bi-eye-slash', 'bi-eye');
+                }
+            });
+            document.getElementById('toggleConfirmPw').addEventListener('click', function () {
+                var icon = document.getElementById('iconConfirmPw');
+                if (inputNewPwConf.type === 'password') {
+                    inputNewPwConf.type = 'text';
+                    icon.classList.replace('bi-eye', 'bi-eye-slash');
+                } else {
+                    inputNewPwConf.type = 'password';
+                    icon.classList.replace('bi-eye-slash', 'bi-eye');
+                }
+            });
+
+            // Client-side password match check
+            resetPwForm.addEventListener('submit', function (e) {
+                if (inputNewPw.value !== inputNewPwConf.value) {
+                    e.preventDefault();
+                    pwMatchError.style.display = 'block';
+                    inputNewPwConf.focus();
+                } else {
+                    pwMatchError.style.display = 'none';
+                }
+            });
+            inputNewPwConf.addEventListener('input', function () {
+                pwMatchError.style.display = (inputNewPw.value !== inputNewPwConf.value && inputNewPwConf.value.length > 0)
+                    ? 'block' : 'none';
+            });
+
+            // Re-open reset modal on server validation error
+            @if ($errors->any() && old('reset_user_id'))
+                resetUserName.textContent  = "{{ old('reset_user_id') }}";
+                resetPwForm.action         = "{{ old('reset_user_id') ? route('users.reset-password', old('reset_user_id')) : '' }}";
+                document.getElementById('inputResetUserId').value = "{{ old('reset_user_id') }}";
+                bsResetModal.show();
+            @endif
+
             // ── DELETE confirm ────────────────────────────────────────
             document.addEventListener('click', function (e) {
                 var btn = e.target.closest('.btn-delete');
@@ -310,7 +460,7 @@
             });
 
             // ── Re-open modal on validation error ─────────────────────
-            @if ($errors->any())
+            @if ($errors->any() && !old('reset_user_id'))
                 @if (old('_method') === 'PUT')
                     labelTitle.innerHTML = '<i class="bi bi-pencil me-2"></i>ແກ້ໄຂຂໍ້ມູນຜູ້ໃຊ້';
                     formMethod.value     = 'PUT';

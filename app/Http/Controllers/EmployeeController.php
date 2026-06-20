@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Models\District;
 use App\Models\Province;
 use App\Models\Unit;
 use App\Models\WorkingStatus;
@@ -10,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class EmployeeController extends Controller
@@ -64,6 +66,7 @@ class EmployeeController extends Controller
             'previous_units'       => ['nullable', 'string'],
             'discipline_record'    => ['nullable', 'string'],
             'biography'            => ['nullable', 'string'],
+            'biography_attachment' => ['nullable', 'string'],
         ];
     }
 
@@ -463,6 +466,12 @@ class EmployeeController extends Controller
                 ->store('employees/photos', 'public');
         }
 
+        if ($request->hasFile('biography_attachment') && $request->file('biography_attachment')->isValid()) {
+            $request->validate(['biography_attachment' => ['file', 'mimes:jpg,jpeg,png,pdf,doc,docx,xls,xlsx', 'max:10240']]);
+            $validated['biography_attachment'] = $request->file('biography_attachment')
+                ->store('employees/attachments', 'public');
+        }
+
         $employee = Employee::create($validated);
         $this->syncChildren($employee, $request);
 
@@ -540,6 +549,17 @@ class EmployeeController extends Controller
             unset($validated['photo']);
         }
 
+        if ($request->hasFile('biography_attachment') && $request->file('biography_attachment')->isValid()) {
+            $request->validate(['biography_attachment' => ['file', 'mimes:jpg,jpeg,png,pdf,doc,docx,xls,xlsx', 'max:10240']]);
+            if ($employee->biography_attachment) {
+                Storage::disk('public')->delete($employee->biography_attachment);
+            }
+            $validated['biography_attachment'] = $request->file('biography_attachment')
+                ->store('employees/attachments', 'public');
+        } else {
+            unset($validated['biography_attachment']);
+        }
+
         $employee->update($validated);
         $this->syncChildren($employee, $request);
 
@@ -558,11 +578,477 @@ class EmployeeController extends Controller
             Storage::disk('public')->delete($employee->photo);
         }
 
+        if ($employee->biography_attachment) {
+            Storage::disk('public')->delete($employee->biography_attachment);
+        }
+
         $employee->children()->delete();
         $employee->delete();
 
         return redirect()
             ->route('employees.index')
             ->with('success', 'ລຶບຂໍ້ມູນພະນັກງານສຳເລັດ');
+    }
+
+    // ================================================================
+    //  IMPORT — form
+    // ================================================================
+
+    public function importForm(): View
+    {
+        return view('employees.import', [
+            'units'        => Unit::orderBy('name')->pluck('name'),
+            'workStatuses' => WorkingStatus::orderBy('name')->pluck('name'),
+        ]);
+    }
+
+    // ================================================================
+    //  IMPORT — download blank template
+    // ================================================================
+
+    public function importTemplate()
+    {
+        // 38 data columns — NO '#' column so row[0] is always full_name.
+        // Column letters A–AL in Excel.
+        $headers = [
+            'ຊື່ ແລະ ນາມສະກຸນ*',               // A  [0]
+            'ເພດ (ຊາຍ/ຍິງ)',                    // B  [1]
+            'ວັນເດືອນປີເກີດ (DD/MM/YYYY)',       // C  [2]
+            'ລະຫັດນາຍທະຫານ',                    // D  [3]
+            'ເລກບັດປະຈຳຕົວ',                    // E  [4]
+            'ກອງປະຈຳ*',                          // F  [5]
+            'ສະຖານະການເຮັດວຽກ*',                // G  [6]
+            'ໜ້າທີ່ພັກ',                         // H  [7]
+            'ໜ້າທີ່ບັນຊາ',                       // I  [8]
+            'ໝູ່ເລືອດ (A/B/O/AB)',               // J  [9]
+            'ບ້ານເກີດ',                           // K  [10]
+            'ເມືອງ/ເຂດເກີດ',                    // L  [11]
+            'ແຂວງເກີດ',                          // M  [12]
+            'ບ້ານຢູ່ປັດຈຸບັນ',                  // N  [13]
+            'ເມືອງ/ເຂດຢູ່ປັດຈຸບັນ',            // O  [14]
+            'ແຂວງຢູ່ປັດຈຸບັນ',                 // P  [15]
+            'ລະດັບວັດທະນະທຳ',                   // Q  [16]
+            'ລະດັບທິດສະດີ',                     // R  [17]
+            'ຮຽນທິດສະດີຈາກ',                   // S  [18]
+            'ລະດັບວິຊາສະເພາະ',                  // T  [19]
+            'ຮຽນວິຊາສະເພາະຈາກ',               // U  [20]
+            'ສັນຊາດ',                            // V  [21]
+            'ເຊື້ອຊາດ',                          // W  [22]
+            'ຊົນເຜົ່າ',                          // X  [23]
+            'ສາສະໜາ',                           // Y  [24]
+            'ຊົນຊັ້ນກ່ອນ 1975',                // Z  [25]
+            'ຊົນຊັ້ນຫຼັງ 1975',                // AA [26]
+            'ວັນເຂົ້າປະຕິວັດ (DD/MM/YYYY)',    // AB [27]
+            'ວັນເຂົ້າທະຫານ (DD/MM/YYYY)',      // AC [28]
+            'ວັນເຂົ້າພັກສຳຮອງ (DD/MM/YYYY)',  // AD [29]
+            'ວັນເຂົ້າພັກສົມບູນ (DD/MM/YYYY)', // AE [30]
+            'ວັນໄດ້ຊັ້ນປັດຈຸບັນ (DD/MM/YYYY)',// AF [31]
+            'ຊື່ພໍ່ແມ່',                        // AG [32]
+            'ຊື່ຄູ່ຊີວິດ',                     // AH [33]
+            'ຈຳນວນລູກ',                        // AI [34]
+            'ກອງເກົ່າ',                        // AJ [35]
+            'ບັນທຶກວິໄນ',                     // AK [36]
+            'ປະຫວັດ',                          // AL [37]
+        ];
+
+        $colWidths = [
+            32, 14, 26, 18, 22,    // A-E
+            22, 28, 26, 26, 12,    // F-J
+            18, 18, 22,            // K-M
+            18, 18, 22,            // N-P
+            18, 18, 25,            // Q-S
+            20, 25,                // T-U
+            15, 18, 15, 15,        // V-Y
+            22, 22,                // Z-AA
+            28, 26, 28, 28, 28,    // AB-AF
+            26, 26, 10,            // AG-AI
+            30, 26, 40,            // AJ-AL
+        ];
+
+        $example = [
+            'ທ່ານ ທົດສອບ ຕົວຢ່າງ',      // A  ← ລຶບແຖວນີ້ ແລ້ວໃສ່ຂໍ້ມູນຕົວຈິງ
+            'ຊາຍ',                         // B  ຊາຍ ຫຼື ຍິງ
+            '01/01/1990',                  // C  DD/MM/YYYY
+            'CODE001',                     // D
+            '1234567890123',               // E
+            '(ໃສ່ຊື່ກອງທີ່ຖືກຕ້ອງ)',       // F  *** ຕ້ອງຕົງກັບຊື່ກອງໃນລະບົບ ***
+            'ກຳລັງປະຈຳການຢູ່',            // G  *** ຕ້ອງຕົງກັບຊື່ສະຖານະໃນລະບົບ ***
+            'ຄ.ກ.ມ',                      // H
+            'ຜູ້ບັນຊາ',                   // I
+            'A',                           // J  A, B, O, ຫຼື AB
+            'ບ້ານ ໂນນສູງ',                // K
+            'ຈັນທະບູລີ',                  // L  ຊື່ເມືອງ/ເຂດ
+            'ນະຄອນຫຼວງວຽງຈັນ',           // M  ຊື່ແຂວງ
+            'ບ້ານ ສີໂຄດ',                // N
+            'ໄຊທານີ',                     // O
+            'ນະຄອນຫຼວງວຽງຈັນ',           // P
+            'ມັດທະຍົມ',                   // Q
+            'ຊັ້ນກາງ',                    // R
+            'ໂຮງຮຽນການເມືອງ',            // S
+            'ປະລິນຍາຕີ',                  // T
+            'ມ.ສ.ກ.',                      // U
+            'ລາວ',                         // V
+            'ລາວ',                         // W
+            'ລາວລຸ່ມ',                    // X
+            'ພຸດທະສາດ',                   // Y
+            'ຊາວໄຮ່',                     // Z
+            'ກຳມາກອນ',                   // AA
+            '01/01/1975',                 // AB
+            '01/06/1980',                 // AC
+            '01/01/2000',                 // AD
+            '01/06/2001',                 // AE
+            '15/03/2015',                 // AF
+            'ພໍ່: ທ່ານ A  ແມ່: ທ່ານ ນາງ B', // AG
+            'ທ່ານ ນາງ ຄູ່ຊີວິດ',         // AH
+            '2',                          // AI
+            'ກອງເກົ່າ 1, ກອງເກົ່າ 2',    // AJ
+            'ບໍ່ມີ',                      // AK
+            'ຊົງຊາດລາວ ດຳລົງຊີວິດ...',   // AL
+        ];
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet       = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Template');
+
+        $colCount = count($headers);
+        $lastCol  = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colCount);
+
+        // Set all data columns (rows 2 onward) as TEXT format to prevent
+        // Excel from converting officer codes / ID numbers to scientific notation
+        // and to keep leading zeros in numeric strings.
+        $textFormat = \PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_TEXT;
+        foreach ($headers as $i => $header) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue($col . '1', $header);
+            // Apply text format to the entire data column (rows 2–1000)
+            $sheet->getStyle("{$col}2:{$col}1000")
+                ->getNumberFormat()
+                ->setFormatCode($textFormat);
+        }
+
+        $sheet->getStyle("A1:{$lastCol}1")->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF'], 'size' => 11, 'name' => 'Calibri'],
+            'fill'      => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => 'FF312E81']],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical'   => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                'wrapText'   => true,
+            ],
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(30);
+
+        // Write example row — all cells as explicit text to preserve leading zeros
+        foreach ($example as $i => $val) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->getCell($col . '2')->setValueExplicit(
+                (string) $val,
+                \PhpOffice\PhpSpreadsheet\Cell\DataType::TYPE_STRING
+            );
+        }
+
+        // Style example row: italic gray + yellow background to signal "delete this row"
+        $sheet->getStyle("A2:{$lastCol}2")->applyFromArray([
+            'font' => ['italic' => true, 'color' => ['argb' => 'FF64748b']],
+            'fill' => ['fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFFFF9C4']],
+        ]);
+
+        foreach ($colWidths as $i => $w) {
+            $sheet->getColumnDimension(
+                \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1)
+            )->setWidth($w);
+        }
+
+        $sheet->freezePane('A2');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+
+        return response()->streamDownload(
+            fn() => $writer->save('php://output'),
+            'import_template_employees.xlsx',
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']
+        );
+    }
+
+    // ================================================================
+    //  IMPORT — parse uploaded file → JSON preview
+    // ================================================================
+
+    public function importPreview(Request $request)
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:csv,xls,xlsx', 'max:10240'],
+        ]);
+
+        try {
+            $file = $request->file('file');
+            $ext  = strtolower($file->getClientOriginalExtension());
+
+            if ($ext === 'csv') {
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Csv();
+                $reader->setDelimiter(',');
+                $reader->setEnclosure('"');
+            } elseif ($ext === 'xls') {
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
+            } else {
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+            }
+
+            $spreadsheet = $reader->load($file->getPathname());
+            $allRows     = $spreadsheet->getActiveSheet()->toArray(null, true, true, false);
+
+            if (empty($allRows)) {
+                return response()->json(['success' => false, 'message' => 'ໄຟລ໌ຫວ່າງເປົ່າ']);
+            }
+
+            $headers = array_shift($allRows);
+
+            $rows = array_values(array_filter($allRows, function ($row) {
+                return count(array_filter($row, fn($v) => $v !== null && $v !== '')) > 0;
+            }));
+
+            if (empty($rows)) {
+                return response()->json(['success' => false, 'message' => 'ບໍ່ພົບຂໍ້ມູນໃນໄຟລ໌ (ມີແຕ່ header)']);
+            }
+
+            return response()->json([
+                'success' => true,
+                'headers' => $headers,
+                'rows'    => $rows,
+                'count'   => count($rows),
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'ອ່ານໄຟລ໌ບໍ່ສຳເລັດ: ' . $e->getMessage()]);
+        }
+    }
+
+    // ================================================================
+    //  IMPORT — persist rows → employees table
+    // ================================================================
+
+    public function importSubmit(Request $request)
+    {
+        $request->validate([
+            'rows'    => ['required', 'array', 'min:1'],
+            'headers' => ['required', 'array'],
+        ]);
+
+        $imported = 0;
+        $skipped  = [];
+
+        // Caches to avoid repeated DB queries for same name
+        $unitCache   = [];
+        $statusCache = [];
+        $provCache   = [];
+        $distCache   = [];
+
+        $parseDate = function ($raw): ?string {
+            $raw = trim((string) ($raw ?? ''));
+            if ($raw === '') return null;
+            if (is_numeric($raw)) {
+                try {
+                    return \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float) $raw)->format('Y-m-d');
+                } catch (\Exception) { return null; }
+            }
+            foreach (['d/m/Y', 'Y-m-d', 'd-m-Y', 'm/d/Y', 'd/m/y'] as $fmt) {
+                $dt = \DateTime::createFromFormat($fmt, $raw);
+                if ($dt && $dt->format($fmt) === $raw) return $dt->format('Y-m-d');
+                if ($dt) return $dt->format('Y-m-d');
+            }
+            return null;
+        };
+
+        // DB-based lookup: MySQL collation for encoding-safe Lao character matching,
+        // with PHP-based contains fallback. Results cached per model.
+        $dbLookup = function (string $model, array &$cache, $value): ?int {
+            $value = trim((string) ($value ?? ''));
+            if ($value === '') return null;
+            if (array_key_exists($value, $cache)) return $cache[$value];
+
+            // 1. Exact match via DB collation
+            $found = $model::where('name', $value)->first(['id', 'name']);
+            // 2. Case-insensitive LOWER() match
+            if (!$found) {
+                $found = $model::whereRaw('LOWER(name) = LOWER(?)', [$value])->first(['id', 'name']);
+            }
+            // 3. PHP mb_strtolower + str_contains (handles partial/abbrev. differences)
+            if (!$found) {
+                $lv = mb_strtolower($value);
+                foreach ($model::all(['id', 'name']) as $r) {
+                    $ln = mb_strtolower((string) $r->name);
+                    if ($ln === $lv || str_contains($ln, $lv) || str_contains($lv, $ln)) {
+                        $found = $r;
+                        break;
+                    }
+                }
+            }
+
+            $cache[$value] = $found ? (int) $found->id : null;
+            return $cache[$value];
+        };
+
+        $str = fn($v) => (preg_replace('/\s+/u', ' ', trim((string) ($v ?? ''))) ?: null);
+
+        // Build column-index map by searching header names (case-insensitive, partial match).
+        // This works regardless of column order or template version (38-col, 39-col, custom).
+        $rawHeaders = array_map(
+            fn($h) => mb_strtolower(trim((string) ($h ?? ''))),
+            $request->input('headers', [])
+        );
+
+        $findCol = function (string ...$keywords) use ($rawHeaders): int {
+            foreach ($rawHeaders as $i => $h) {
+                foreach ($keywords as $kw) {
+                    if ($kw !== '' && str_contains($h, mb_strtolower($kw))) return $i;
+                }
+            }
+            return -1;
+        };
+
+        $C = [
+            'full_name'   => $findCol('ຊື່ ແລະ ນາມສະກຸນ'),
+            'gender'      => $findCol('ເພດ'),
+            'dob'         => $findCol('ວັນເດືອນປີເກີດ', 'ວັນເກີດ'),
+            'officer'     => $findCol('ລະຫັດນາຍທະຫານ'),
+            'id_card'     => $findCol('ເລກບັດ'),
+            'unit'        => $findCol('ກອງປະຈຳ'),
+            'status'      => $findCol('ສະຖານະ'),
+            'party_duty'  => $findCol('ໜ້າທີ່ພັກ'),
+            'command'     => $findCol('ໜ້າທີ່ບັນຊາ'),
+            'blood'       => $findCol('ໝູ່ເລືອດ'),
+            'bvill'       => $findCol('ບ້ານເກີດ'),
+            'bdist'       => $findCol('ເມືອງ/ເຂດເກີດ', 'ເມືອງເກີດ'),
+            'bprov'       => $findCol('ແຂວງເກີດ'),
+            'cvill'       => $findCol('ບ້ານຢູ່ປັດຈຸບັນ', 'ບ້ານຢູ່'),
+            'cdist'       => $findCol('ເມືອງ/ເຂດຢູ່', 'ເມືອງຢູ່ປັດຈຸບັນ', 'ເມືອງຢູ່'),
+            'cprov'       => $findCol('ແຂວງຢູ່ປັດຈຸບັນ', 'ແຂວງຢູ່'),
+            'culture'     => $findCol('ວັດທະນະທຳ'),
+            'theory_lv'   => $findCol('ລະດັບທິດສະດີ'),
+            'theory_from' => $findCol('ຮຽນທິດສະດີ'),
+            'prof_lv'     => $findCol('ລະດັບວິຊາສະເພາະ'),
+            'prof_from'   => $findCol('ຮຽນວິຊາສະເພາະ', 'ຮຽນວິຊາ'),
+            'nat'         => $findCol('ສັນຊາດ'),
+            'eth'         => $findCol('ເຊື້ອຊາດ'),
+            'tribe'       => $findCol('ຊົນເຜົ່າ'),
+            'religion'    => $findCol('ສາສະໜາ'),
+            'cl_before'   => $findCol('ຊົນຊັ້ນກ່ອນ', 'ກ່ອນ 1975'),
+            'cl_after'    => $findCol('ຊົນຊັ້ນຫຼັງ', 'ຫຼັງ 1975'),
+            'j_rev'       => $findCol('ເຂົ້າປະຕິວັດ', 'ປະຕິວັດ'),
+            'j_army'      => $findCol('ເຂົ້າທະຫານ'),
+            'j_cand'      => $findCol('ພັກສຳຮອງ', 'ສຳຮອງ'),
+            'j_full'      => $findCol('ພັກສົມບູນ', 'ສົມບູນ'),
+            'rank_date'   => $findCol('ໄດ້ຊັ້ນ', 'ຊັ້ນປັດຈຸບັນ'),
+            'parents'     => $findCol('ພໍ່ແມ່'),
+            'spouse'      => $findCol('ຄູ່ຊີວິດ'),
+            'children'    => $findCol('ຈຳນວນລູກ', 'ຈ.ລູກ'),
+            'prev_units'  => $findCol('ກອງເກົ່າ'),
+            'discipline'  => $findCol('ບັນທຶກວິໄນ', 'ວິໄນ'),
+            'biography'   => $findCol('ປະຫວັດ'),
+        ];
+
+        // Require at minimum the three essential columns
+        if ($C['full_name'] < 0 || $C['unit'] < 0 || $C['status'] < 0) {
+            $missing = [];
+            if ($C['full_name'] < 0) $missing[] = 'ຊື່ ແລະ ນາມສະກຸນ';
+            if ($C['unit'] < 0)      $missing[] = 'ກອງປະຈຳ';
+            if ($C['status'] < 0)    $missing[] = 'ສະຖານະ';
+            return response()->json([
+                'success' => false,
+                'message' => 'ໄຟລ໌ຂາດ header: ' . implode(', ', $missing)
+                           . ' — ດາວໂຫຼດ Template ໃໝ່ ຫຼື ກວດ header ແຖວທຳອິດ',
+            ]);
+        }
+
+        $get = fn(array $row, string $key) => ($C[$key] >= 0) ? ($row[$C[$key]] ?? null) : null;
+
+        DB::beginTransaction();
+        try {
+            foreach ($request->input('rows') as $i => $row) {
+                $rowNum = $i + 2;
+
+                $fullName = $str($get($row, 'full_name'));
+                if (!$fullName) {
+                    $skipped[] = "ແຖວ {$rowNum}: ຊື່ ແລະ ນາມສະກຸນ ຫວ່າງ — ຂ້າມ";
+                    continue;
+                }
+
+                $genderRaw = mb_strtolower(trim((string) ($get($row, 'gender') ?? '')));
+                $gender    = match(true) {
+                    in_array($genderRaw, ['ຊາຍ', 'male', 'm'])   => 'male',
+                    in_array($genderRaw, ['ຍິງ', 'female', 'f']) => 'female',
+                    default => null,
+                };
+
+                $unitId = $dbLookup(Unit::class, $unitCache, $get($row, 'unit'));
+                if (!$unitId) {
+                    $skipped[] = "ແຖວ {$rowNum} ({$fullName}): ກອງ '" . $str($get($row, 'unit')) . "' ບໍ່ພົບ — ກວດຊື່ໃຫ້ຕົງກັບໃນລະບົບ";
+                    continue;
+                }
+
+                $statusId = $dbLookup(WorkingStatus::class, $statusCache, $get($row, 'status'));
+                if (!$statusId) {
+                    $skipped[] = "ແຖວ {$rowNum} ({$fullName}): ສະຖານະ '" . $str($get($row, 'status')) . "' ບໍ່ພົບ — ກວດຊື່ໃຫ້ຕົງກັບໃນລະບົບ";
+                    continue;
+                }
+
+                $bloodGroup = strtoupper(trim((string) ($get($row, 'blood') ?? '')));
+                if (!in_array($bloodGroup, ['A', 'B', 'O', 'AB'])) $bloodGroup = null;
+
+                Employee::create([
+                    'full_name'            => $fullName,
+                    'gender'               => $gender,
+                    'dob'                  => $parseDate($get($row, 'dob')),
+                    'officer_code'         => substr($str($get($row, 'officer')) ?? '', 0, 12) ?: null,
+                    'id_card_number'       => substr($str($get($row, 'id_card')) ?? '', 0, 25) ?: null,
+                    'unit_id'              => $unitId,
+                    'work_status_id'       => $statusId,
+                    'party_duty'           => $str($get($row, 'party_duty')),
+                    'command_duty'         => $str($get($row, 'command')),
+                    'blood_group'          => $bloodGroup,
+                    'birth_village'        => $str($get($row, 'bvill')),
+                    'birth_district_id'    => $dbLookup(District::class, $distCache, $get($row, 'bdist')),
+                    'birth_province_id'    => $dbLookup(Province::class, $provCache, $get($row, 'bprov')),
+                    'current_village'      => $str($get($row, 'cvill')),
+                    'current_district_id'  => $dbLookup(District::class, $distCache, $get($row, 'cdist')),
+                    'current_province_id'  => $dbLookup(Province::class, $provCache, $get($row, 'cprov')),
+                    'culture_level'        => $str($get($row, 'culture')),
+                    'theory_level'         => $str($get($row, 'theory_lv')),
+                    'theory_from'          => $str($get($row, 'theory_from')),
+                    'profession_level'     => $str($get($row, 'prof_lv')),
+                    'profession_from'      => $str($get($row, 'prof_from')),
+                    'nationality'          => $str($get($row, 'nat')),
+                    'ethnicity_group'      => $str($get($row, 'eth')),
+                    'tribe'                => $str($get($row, 'tribe')),
+                    'religion'             => $str($get($row, 'religion')),
+                    'class_before_1975'    => $str($get($row, 'cl_before')),
+                    'class_after_1975'     => $str($get($row, 'cl_after')),
+                    'join_revolution_date' => $parseDate($get($row, 'j_rev')),
+                    'join_army_date'       => $parseDate($get($row, 'j_army')),
+                    'candidate_party_date' => $parseDate($get($row, 'j_cand')),
+                    'full_party_date'      => $parseDate($get($row, 'j_full')),
+                    'current_rank_date'    => $parseDate($get($row, 'rank_date')),
+                    'parents_name'         => $str($get($row, 'parents')),
+                    'spouse_name'          => $str($get($row, 'spouse')),
+                    'child_count'          => is_numeric($get($row, 'children') ?? '') ? (int) $get($row, 'children') : 0,
+                    'previous_units'       => $str($get($row, 'prev_units')),
+                    'discipline_record'    => $str($get($row, 'discipline')),
+                    'biography'            => $str($get($row, 'biography')),
+                    'created_by'           => Auth::id(),
+                    'updated_by'           => Auth::id(),
+                ]);
+                $imported++;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success'  => true,
+                'imported' => $imported,
+                'skipped'  => $skipped,
+                'message'  => "ນຳເຂົ້າສຳເລັດ {$imported} ລາຍການ" . (count($skipped) ? ' · ຂ້າມ ' . count($skipped) . ' ລາຍການ' : ''),
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => 'ເກີດຂໍ້ຜິດພາດ: ' . $e->getMessage()]);
+        }
     }
 }

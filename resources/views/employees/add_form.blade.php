@@ -866,8 +866,8 @@
                 <h6>ໝວດ VIII · ປະຫວັດການເຄື່ອນໄຫວ</h6>
             </div>
             <div class="card-body-inner">
-                <div class="row g-3">
-                    <div class="col-12">
+                <div class="row g-3 align-items-start">
+                    <div class="col-lg-9 col-md-8">
                         <label class="form-label">
                             ປະຫວັດການເຄື່ອນໄຫວ
                             <span class="text-muted ms-1" style="font-size:0.73rem;">(ແຕ່ອາຍຸ 8 ປີ)</span>
@@ -876,6 +876,27 @@
                                   name="biography" rows="6"
                                   placeholder="ລະບຸປະຫວັດການເຄື່ອນໄຫວ ແຕ່ອາຍຸ 8 ປີ ຂຶ້ນໄປ...">{{ old('biography') }}</textarea>
                         @error('biography')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-lg-3 col-md-4">
+                        <label class="form-label text-center w-100">ຮູບຖ່າຍ</label>
+                        <div class="photo-upload-area w-100" id="attachmentUploadArea">
+                            <input type="file" id="attachmentInput" name="biography_attachment"
+                                   accept="image/jpg,image/jpeg,image/png"
+                                   onchange="previewAttachment(this)">
+                            <img id="attachmentPreview" class="photo-preview" src="#" alt="preview"
+                                 style="width:100%; height:140px;">
+                            <div id="attachmentPlaceholder">
+                                <div class="upload-icon"><i class="bi bi-camera"></i></div>
+                                <p class="mb-0 text-muted" style="font-size:0.75rem;">
+                                    ກົດເພື່ອອັບໂຫຼດ<br>
+                                    <span class="text-primary">JPG, PNG</span>
+                                </p>
+                            </div>
+                        </div>
+                        @error('biography_attachment')
+                            <div class="text-danger mt-1" style="font-size:0.76rem;">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -939,6 +960,18 @@
             reader.onload = e => {
                 $('#photoPreview').attr('src', e.target.result).show();
                 $('#uploadPlaceholder').hide();
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // ===== Biography Attachment Preview =====
+    function previewAttachment(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                $('#attachmentPreview').attr('src', e.target.result).show();
+                $('#attachmentPlaceholder').hide();
             };
             reader.readAsDataURL(input.files[0]);
         }

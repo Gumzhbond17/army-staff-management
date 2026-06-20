@@ -177,17 +177,23 @@
         cursor: pointer;
         transition: all 0.25s ease;
         position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
     .photo-upload-area:hover { border-color: #6366f1; background: rgba(99,102,241,0.07); }
     .photo-upload-area input[type="file"] {
         position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
     }
     .photo-preview {
-        width: 90px; height: 110px;
+        width: 100%;
+        max-width: 130px;
+        height: 150px;
         border-radius: 10px;
         object-fit: cover;
         border: 3px solid rgba(99,102,241,0.25);
-        margin-bottom: 0.5rem;
+        margin: 0 auto 0.5rem;
         display: none;
     }
     .upload-icon {
@@ -410,11 +416,11 @@
                 <div class="row g-3">
 
                     {{-- Photo --}}
-                    <div class="col-lg-2 col-md-3 d-flex flex-column align-items-center">
+                    <div class="col-lg-2 col-md-3 d-flex flex-column justify-content-start">
                         <label class="form-label text-center w-100">ຮູບຖ່າຍ</label>
                         <div class="photo-upload-area w-100">
                             <input type="file" id="photoInput" name="photo" accept="image/*" onchange="previewPhoto(this)">
-                            <img id="photoPreview" class="photo-preview" src="#" alt="preview">
+                            <img id="photoPreview" class="photo-preview" src="#" alt="preview" style="margin: 0 auto;">
                             <div id="uploadPlaceholder">
                                 <div class="upload-icon"><i class="bi bi-camera"></i></div>
                                 <p class="mb-0 text-muted" style="font-size:0.75rem;">ກົດເພື່ອອັບໂຫຼດ<br><span class="text-primary">JPG, PNG</span></p>
@@ -866,8 +872,8 @@
                 <h6>ໝວດ VIII · ປະຫວັດການເຄື່ອນໄຫວ</h6>
             </div>
             <div class="card-body-inner">
-                <div class="row g-3">
-                    <div class="col-12">
+                <div class="row g-3 align-items-start">
+                    <div class="col-lg-9 col-md-8">
                         <label class="form-label">
                             ປະຫວັດການເຄື່ອນໄຫວ
                             <span class="text-muted ms-1" style="font-size:0.73rem;">(ແຕ່ອາຍຸ 8 ປີ)</span>
@@ -876,6 +882,32 @@
                                   name="biography" rows="6"
                                   placeholder="ລະບຸປະຫວັດການເຄື່ອນໄຫວ ແຕ່ອາຍຸ 8 ປີ ຂຶ້ນໄປ...">{{ old('biography') }}</textarea>
                         @error('biography')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+
+                    <div class="col-lg-3 col-md-4">
+                        <label class="form-label text-center w-100">ຮູບຖ່າຍ / ເອກະສານ</label>
+                        <div class="photo-upload-area w-100" id="attachmentUploadArea">
+                            <input type="file" id="attachmentInput" name="biography_attachment"
+                                   accept=".jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx"
+                                   onchange="previewAttachment(this)">
+                            <img id="attachmentPreview" class="photo-preview" src="#" alt="preview"
+                                 style="width:100%; height:140px; object-fit:cover; display:none;">
+                            <div id="attachmentFileInfo" style="display:none; padding:0.75rem 0;">
+                                <div id="attachmentFileIcon" style="font-size:2.5rem; margin-bottom:0.35rem;"></div>
+                                <p id="attachmentFileName" class="mb-0 text-muted"
+                                   style="font-size:0.72rem; word-break:break-all; padding:0 0.25rem;"></p>
+                            </div>
+                            <div id="attachmentPlaceholder">
+                                <div class="upload-icon"><i class="bi bi-paperclip"></i></div>
+                                <p class="mb-0 text-muted" style="font-size:0.72rem; line-height:1.6;">
+                                    ກົດເພື່ອອັບໂຫຼດ<br>
+                                    <span class="text-primary">JPG · PNG · PDF<br>WORD · EXCEL</span>
+                                </p>
+                            </div>
+                        </div>
+                        @error('biography_attachment')
+                            <div class="text-danger mt-1" style="font-size:0.76rem;">{{ $message }}</div>
+                        @enderror
                     </div>
                 </div>
             </div>
@@ -888,7 +920,7 @@
                 ຊ່ອງທີ່ມີ <span class="required-star">*</span> ຕ້ອງການຂໍ້ມູນ
             </div>
             <div class="d-flex gap-2 flex-wrap">
-                <button type="reset" class="btn-glass-reset btn">
+                <button type="button" class="btn-glass-reset btn" id="btnClearForm">
                     <i class="bi bi-arrow-counterclockwise me-1"></i> ລ້າງຂໍ້ມູນ
                 </button>
                 <a href="{{ route('employees.index') }}" class="btn-glass-secondary btn">
@@ -941,6 +973,35 @@
                 $('#uploadPlaceholder').hide();
             };
             reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // ===== Biography Attachment Preview =====
+    function previewAttachment(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const ext  = file.name.split('.').pop().toLowerCase();
+
+        $('#attachmentPlaceholder').hide();
+        $('#attachmentPreview').hide();
+        $('#attachmentFileInfo').hide();
+
+        if (['jpg', 'jpeg', 'png'].includes(ext)) {
+            const reader = new FileReader();
+            reader.onload = e => { $('#attachmentPreview').attr('src', e.target.result).show(); };
+            reader.readAsDataURL(file);
+        } else {
+            const icons = {
+                pdf:  { cls: 'bi-file-earmark-pdf-fill',   color: '#ef4444' },
+                doc:  { cls: 'bi-file-earmark-word-fill',  color: '#2563eb' },
+                docx: { cls: 'bi-file-earmark-word-fill',  color: '#2563eb' },
+                xls:  { cls: 'bi-file-earmark-excel-fill', color: '#16a34a' },
+                xlsx: { cls: 'bi-file-earmark-excel-fill', color: '#16a34a' },
+            };
+            const ic = icons[ext] || { cls: 'bi-file-earmark-fill', color: '#6366f1' };
+            $('#attachmentFileIcon').html(`<i class="bi ${ic.cls}" style="color:${ic.color};"></i>`);
+            $('#attachmentFileName').text(file.name);
+            $('#attachmentFileInfo').show();
         }
     }
 
@@ -1039,6 +1100,52 @@ $(document).ready(function () {
         $(`[name="children[${i}][dob]"]`).val(child.dob ?? '');
         $(`[name="children[${i}][gender]"]`).val(child.gender ?? '');
         $(`[name="children[${i}][note]"]`).val(child.note ?? '');
+    });
+
+    // ===== Clear Form with SweetAlert confirm =====
+    document.getElementById('btnClearForm').addEventListener('click', function () {
+        Swal.fire({
+            title: 'ລ້າງຂໍ້ມູນທັງໝົດ?',
+            text: 'ຂໍ້ມູນທີ່ທ່ານກຳລັງຕື່ມຈະຖືກລຶບອອກທັງໝົດ',
+            icon: 'warning',
+            iconColor: '#ef4444',
+            showCancelButton: true,
+            confirmButtonText: 'ລ້າງເລີຍ',
+            cancelButtonText: 'ຍົກເລີກ',
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true,
+        }).then(function (result) {
+            if (result.isConfirmed) {
+                // Reset native form fields
+                document.getElementById('employeeForm').reset();
+
+                // Reset Select2 dropdowns
+                $('.select2').val(null).trigger('change');
+
+                // Reset photo preview
+                $('#photoPreview').hide().attr('src', '#');
+                $('#uploadPlaceholder').show();
+
+                // Reset attachment preview
+                $('#attachmentPreview').hide().attr('src', '#');
+                $('#attachmentFileInfo').hide();
+                $('#attachmentPlaceholder').show();
+
+                // Reset child rows
+                renderChildren(0);
+
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: 'ລ້າງຂໍ້ມູນສຳເລັດ',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true,
+                });
+            }
+        });
     });
 
     // Form validation
