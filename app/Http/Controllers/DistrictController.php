@@ -17,7 +17,7 @@ class DistrictController extends Controller
             ->orderBy('id', 'desc')
             ->paginate(10);
 
-        $provinces = Province::where('is_active', true)->get();
+        $provinces = Province::query()->where('is_active', '=', 1)->get();
 
         return view('districts.index', compact('districts', 'provinces'));
     }
@@ -61,7 +61,7 @@ class DistrictController extends Controller
 
     public function destroy(District $district)
     {
-        $district->delete();
+        $district->delete(true);
 
         return redirect()->route('districts.index')
             ->with('success', 'ລຶບຂໍ້ມູນສຳເລັດແລ້ວ');

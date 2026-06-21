@@ -504,7 +504,7 @@
                             @foreach($provinces as $p)
                                 <option value="{{ $p->id }}"
                                     {{ old('birth_province_id', $employee->birth_province_id) == $p->id ? 'selected' : '' }}>
-                                    {{ $p->name }}
+                                    [{{ $p->code }}] {{ $p->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -551,7 +551,7 @@
                             @foreach($provinces as $p)
                                 <option value="{{ $p->id }}"
                                     {{ old('current_province_id', $employee->current_province_id) == $p->id ? 'selected' : '' }}>
-                                    {{ $p->name }}
+                                    [{{ $p->code }}] {{ $p->name }}
                                 </option>
                             @endforeach
                         </select>

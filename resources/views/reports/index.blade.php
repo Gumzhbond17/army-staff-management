@@ -107,6 +107,78 @@
         margin-bottom: 1rem;
     }
 
+    /* Location cards */
+    .location-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.4rem 1.2rem 1rem;
+        box-shadow: 0 2px 14px rgba(0,0,0,0.07);
+        height: 100%;
+    }
+    .location-card-header {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.8rem;
+        border-bottom: 2px solid #f3f4f6;
+    }
+    .location-list {
+        max-height: 280px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #e5e7eb transparent;
+    }
+    .location-list::-webkit-scrollbar { width: 4px; }
+    .location-list::-webkit-scrollbar-track { background: transparent; }
+    .location-list::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 4px; }
+    .location-item {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        padding: 0.42rem 0;
+        border-bottom: 1px solid #f9fafb;
+    }
+    .location-item:last-child { border-bottom: none; }
+    .location-rank {
+        font-size: 0.68rem;
+        font-weight: 700;
+        min-width: 20px;
+        text-align: center;
+        opacity: 0.6;
+    }
+    .location-name {
+        flex: 1;
+        font-size: 0.83rem;
+        font-weight: 500;
+        color: #374151;
+    }
+    .location-bar-wrap {
+        width: 70px;
+        height: 5px;
+        background: #f3f4f6;
+        border-radius: 3px;
+        flex-shrink: 0;
+    }
+    .location-bar {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.8s ease;
+    }
+    .location-count {
+        font-size: 0.82rem;
+        font-weight: 700;
+        min-width: 30px;
+        text-align: right;
+    }
+    .location-pct {
+        font-size: 0.7rem;
+        font-weight: 600;
+        min-width: 38px;
+        text-align: right;
+        opacity: 0.65;
+    }
+
     /* Summary total badge */
     .total-badge {
         background: linear-gradient(135deg, #6366f1, #4f46e5);
@@ -298,7 +370,93 @@
     </div>
 
     {{-- ════════════════════════════════════════
-         SECTION 4 — CHARTS
+         SECTION 4 — PROVINCE & DISTRICT
+    ════════════════════════════════════════ --}}
+    <div class="section-title">
+        <div class="section-icon-wrap" style="background:rgba(16,185,129,0.12);color:#10b981;">
+            <i class="bi bi-geo-alt-fill"></i>
+        </div>
+        <h5>ສະຖິຕິຕາມແຂວງ ແລະ ເມືອງ</h5>
+    </div>
+
+    @php
+        $locationCards = [
+            [
+                'title'   => 'ແຂວງທີ່ຢູ່ປັດຈຸບັນ',
+                'data'    => $currentProvinceStats,
+                'accent'  => '#6366f1',
+                'icon_bg' => 'rgba(99,102,241,0.13)',
+                'icon'    => 'bi-geo-alt-fill',
+            ],
+            [
+                'title'   => 'ແຂວງເກີດ',
+                'data'    => $birthProvinceStats,
+                'accent'  => '#10b981',
+                'icon_bg' => 'rgba(16,185,129,0.13)',
+                'icon'    => 'bi-geo-fill',
+            ],
+            [
+                'title'   => 'ເມືອງທີ່ຢູ່ປັດຈຸບັນ',
+                'data'    => $currentDistrictStats,
+                'accent'  => '#0ea5e9',
+                'icon_bg' => 'rgba(14,165,233,0.13)',
+                'icon'    => 'bi-pin-map-fill',
+            ],
+            [
+                'title'   => 'ເມືອງເກີດ',
+                'data'    => $birthDistrictStats,
+                'accent'  => '#f59e0b',
+                'icon_bg' => 'rgba(245,158,11,0.13)',
+                'icon'    => 'bi-pin-fill',
+            ],
+        ];
+    @endphp
+
+    <div class="row g-3 mb-4">
+        @foreach($locationCards as $card)
+        @php $cardTotal = $card['data']->sum('count'); $cardMax = $card['data']->max('count') ?: 1; @endphp
+        <div class="col-md-6">
+            <div class="location-card">
+                <div class="location-card-header">
+                    <div class="section-icon-wrap"
+                         style="background:{{ $card['icon_bg'] }};color:{{ $card['accent'] }};width:34px;height:34px;">
+                        <i class="bi {{ $card['icon'] }}" style="font-size:0.9rem;"></i>
+                    </div>
+                    <div>
+                        <div style="font-size:0.9rem;font-weight:700;color:#1f2937;">{{ $card['title'] }}</div>
+                        <div style="font-size:0.72rem;color:#9ca3af;">
+                            {{ $card['data']->count() }} ລາຍການ &nbsp;·&nbsp; {{ number_format($cardTotal) }} ຄົນ
+                        </div>
+                    </div>
+                </div>
+                @if($card['data']->isEmpty())
+                <div class="text-center py-3" style="color:#9ca3af;font-size:0.83rem;">
+                    <i class="bi bi-inbox me-1"></i>ບໍ່ມີຂໍ້ມູນ
+                </div>
+                @else
+                <div class="location-list">
+                    @foreach($card['data'] as $i => $row)
+                    @php $pct = $cardTotal > 0 ? ($row->count / $cardTotal) * 100 : 0; @endphp
+                    <div class="location-item">
+                        <span class="location-rank" style="color:{{ $card['accent'] }};">{{ $i + 1 }}</span>
+                        <span class="location-name">{{ $row->name }}</span>
+                        <div class="location-bar-wrap">
+                            <div class="location-bar"
+                                 style="width:{{ number_format(($row->count / $cardMax) * 100, 1) }}%;background:{{ $card['accent'] }};"></div>
+                        </div>
+                        <span class="location-count" style="color:{{ $card['accent'] }};">{{ number_format($row->count) }}</span>
+                        <span class="location-pct" style="color:{{ $card['accent'] }};">{{ number_format($pct, 1) }}%</span>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+            </div>
+        </div>
+        @endforeach
+    </div>
+
+    {{-- ════════════════════════════════════════
+         SECTION 5 — CHARTS
     ════════════════════════════════════════ --}}
     <div class="section-title">
         <div class="section-icon-wrap" style="background:rgba(6,182,212,0.1);color:#06b6d4;">

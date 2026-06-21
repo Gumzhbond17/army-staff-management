@@ -577,7 +577,7 @@
                                 name="birth_province_id" id="birthProvince">
                             <option value="">-- ເລືອກແຂວງ --</option>
                             @foreach($provinces ?? [] as $p)
-                                <option value="{{ $p->id }}" {{ old('birth_province_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                                <option value="{{ $p->id }}" {{ old('birth_province_id') == $p->id ? 'selected' : '' }}>[{{ $p->code }}] {{ $p->name }}</option>
                             @endforeach
                         </select>
                         @error('birth_province_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -629,7 +629,7 @@
                                 name="current_province_id" id="currentProvince">
                             <option value="">-- ເລືອກແຂວງ --</option>
                             @foreach($provinces ?? [] as $p)
-                                <option value="{{ $p->id }}" {{ old('current_province_id') == $p->id ? 'selected' : '' }}>{{ $p->name }}</option>
+                                <option value="{{ $p->id }}" {{ old('current_province_id') == $p->id ? 'selected' : '' }}>[{{ $p->code }}] {{ $p->name }}</option>
                             @endforeach
                         </select>
                         @error('current_province_id')<div class="invalid-feedback">{{ $message }}</div>@enderror

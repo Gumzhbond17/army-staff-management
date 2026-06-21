@@ -436,7 +436,7 @@ class EmployeeController extends Controller
 
     public function create(): View
     {
-        $provinces       = Province::orderBy('name','asc')->get();
+        $provinces       = Province::orderBy('code','asc')->get();
         $units           = Unit::orderBy('name', 'asc')->get();
         $workingStatuses = WorkingStatus::orderBy('name','asc')->get();
 
@@ -504,7 +504,7 @@ class EmployeeController extends Controller
     {
         $employee->load('children');
 
-        $provinces       = Province::orderBy('name', 'asc')->get();
+        $provinces       = Province::orderBy('code', 'asc')->get();
         $units           = Unit::orderBy('name', 'asc')->get();
         $workingStatuses = WorkingStatus::orderBy('name', 'asc')->get();
 
