@@ -17,8 +17,8 @@ class ReportController extends Controller
             ->groupBy('gender')
             ->pluck('count', 'gender');
 
-        $maleCount   = $genderCounts['ຊາຍ'] ?? 0;
-        $femaleCount = $genderCounts['ຍິງ'] ?? 0;
+        $maleCount   = $genderCounts['male'] ?? 0;
+        $femaleCount = $genderCounts['female'] ?? 0;
 
         // Working status stats
         $allStatuses  = WorkingStatus::orderBy('name')->get();

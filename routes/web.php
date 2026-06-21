@@ -47,6 +47,7 @@ Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/employees/import/template', [EmployeeController::class, 'importTemplate'])->name('employees.import.template');
     Route::post('/employees/import/preview', [EmployeeController::class, 'importPreview'])->name('employees.import.preview');
     Route::post('/employees/import/submit',  [EmployeeController::class, 'importSubmit'])->name('employees.import.submit');
+    Route::get('/employees/{employee}/pdf',  [EmployeeController::class, 'exportPdf'])->name('employees.pdf');
     Route::resource('employees', EmployeeController::class)->only(['index', 'show', 'create', 'store']);
     Route::resource('ranks', RankController::class);
     Route::resource('units', UnitController::class);

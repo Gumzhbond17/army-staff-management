@@ -497,6 +497,59 @@ class EmployeeController extends Controller
     }
 
     // ================================================================
+    //  EXPORT PDF
+    // ================================================================
+
+    public function exportPdf(Employee $employee)
+    {
+        $employee->load([
+            'unit', 'workingStatus',
+            'birthProvince', 'birthDistrict',
+            'currentProvince', 'currentDistrict',
+            'children',
+        ]);
+
+        $photoPath = $employee->photo ? public_path('storage/' . $employee->photo) : null;
+        $html = view('employees.pdf', compact('employee', 'photoPath'))->render();
+
+        $tempDir = storage_path('app/mpdf');
+        if (!is_dir($tempDir)) {
+            mkdir($tempDir, 0755, true);
+        }
+
+        $mpdf = new \Mpdf\Mpdf([
+            'mode'          => 'utf-8',
+            'format'        => 'A4',
+            'default_font'  => 'phetsarath',
+            'fontDir'       => [public_path('assets/font')],
+            'fontdata'      => [
+                'phetsarath' => [
+                    'R'      => 'phetsarath_ot.ttf',
+                    'B'      => 'phetsarath_ot.ttf',
+                    'I'      => 'phetsarath_ot.ttf',
+                    'BI'     => 'phetsarath_ot.ttf',
+                    'useOTL' => 0xFF,
+                ],
+            ],
+            'tempDir'       => $tempDir,
+            'margin_top'    => 7,
+            'margin_bottom' => 7,
+            'margin_left'   => 8,
+            'margin_right'  => 8,
+        ]);
+
+        $mpdf->SetTitle('ຂໍ້ມູນພະນັກງານ - ' . $employee->full_name);
+        $mpdf->WriteHTML($html);
+
+        $filename = 'employee_' . $employee->id . '_' . date('Ymd') . '.pdf';
+        $content  = $mpdf->Output($filename, 'S');
+
+        return response($content, 200)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'inline; filename="' . $filename . '"');
+    }
+
+    // ================================================================
     //  EDIT
     // ================================================================
 

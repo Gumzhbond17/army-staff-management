@@ -216,8 +216,27 @@
     </div>
 
     <div class="row g-3 mb-4">
+        {{-- Total --}}
+        <div class="col-md-4">
+            <div class="card stat-card shadow-sm" style="background:linear-gradient(135deg,rgba(99,102,241,0.08),rgba(99,102,241,0.03)); border-left:4px solid #6366f1;">
+                <div class="stat-percent" style="background:rgba(99,102,241,0.12);color:#6366f1;">100%</div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-icon" style="background:rgba(99,102,241,0.14);">
+                        <i class="bi bi-people-fill" style="color:#6366f1;"></i>
+                    </div>
+                    <div>
+                        <div class="stat-value" style="color:#6366f1;">{{ number_format($totalEmployees) }}</div>
+                        <div class="stat-label" style="color:#6366f1;">ພະນັກງານທັງໝົດ</div>
+                    </div>
+                </div>
+                <div class="stat-progress" style="background:rgba(99,102,241,0.15);">
+                    <div class="bar" style="width:100%; background:#6366f1;"></div>
+                </div>
+            </div>
+        </div>
+
         {{-- Male --}}
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card stat-card card-male shadow-sm">
                 <div class="stat-percent" style="background:rgba(59,130,246,0.12);color:#3b82f6;">
                     {{ $totalEmployees > 0 ? number_format(($maleCount / $totalEmployees) * 100, 1) : '0.0' }}%
@@ -238,7 +257,7 @@
         </div>
 
         {{-- Female --}}
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card stat-card card-female shadow-sm">
                 <div class="stat-percent" style="background:rgba(236,72,153,0.12);color:#ec4899;">
                     {{ $totalEmployees > 0 ? number_format(($femaleCount / $totalEmployees) * 100, 1) : '0.0' }}%

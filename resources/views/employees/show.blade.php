@@ -203,6 +203,15 @@
         transition: all 0.2s ease;
     }
     .btn-delete:hover { background: rgba(239,68,68,0.15); color: #dc2626; }
+    .btn-pdf {
+        background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+        border: none; border-radius: 10px; color: #fff;
+        font-weight: 600; font-size: 0.85rem; padding: 0.55rem 1.25rem;
+        box-shadow: 0 4px 12px rgba(14,165,233,0.35);
+        transition: all 0.2s ease;
+        text-decoration: none;
+    }
+    .btn-pdf:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(14,165,233,0.50); color: #fff; }
 
     /* ===== Date chip ===== */
     .date-chip {
@@ -241,6 +250,9 @@
             <p>{{ $employee->full_name }} · {{ $employee->unit->name ?? '' }}</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
+            <a href="{{ route('employees.pdf', $employee->id) }}" target="_blank" class="btn-pdf btn">
+                <i class="bi bi-printer-fill me-1"></i> ພິມ PDF
+            </a>
             @if(Auth::user()->isAdmin())
                 <a href="{{ route('employees.edit', $employee->id) }}" class="btn-edit btn">
                     <i class="bi bi-pencil me-1"></i> ແກ້ໄຂ
