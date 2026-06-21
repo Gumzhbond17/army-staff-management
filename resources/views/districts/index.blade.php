@@ -44,6 +44,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th class="text-muted fw-medium" style="font-size:14px; width:56px;">#</th>
+                                <th class="text-muted fw-medium" style="font-size:14px;">ລະຫັດແຂວງ</th>
                                 <th class="text-muted fw-medium" style="font-size:14px;">ຊື່ແຂວງ</th>
                                 <th class="text-muted fw-medium" style="font-size:14px;">ຊື່/ລາຍການ</th>
                                 <th class="text-muted fw-medium" style="font-size:14px;">ສະຖານະ</th>
@@ -62,6 +63,7 @@
                                             {{ $loop->iteration }}
                                         </span>
                                     </td>
+                                    <td class="text-muted" style="font-size:13px; font-family:monospace;">{{ $district->province->code }}</td>
                                     <td class="fw-medium">{{ $district->province->name }}</td>
                                     <td class="fw-medium">{{ $district->name }}</td>
                                     <td>
@@ -103,7 +105,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="6" class="text-center py-5 text-muted">
+                                    <td colspan="8" class="text-center py-5 text-muted">
                                         <i class="bi bi-inbox fs-3 d-block mb-2"></i>
                                         ບໍ່ມີຂໍ້ມູນ
                                     </td>
@@ -152,7 +154,7 @@
                             <select class="form-select select2-province" name="province_id" id="inputProvinceId" required>
                                 <option value="">-- ເລືອກແຂວງ --</option>
                                 @foreach ($provinces as $province)
-                                    <option value="{{ $province->id }}">{{ $province->name }}</option>
+                                    <option value="{{ $province->id }}">{{ $province->code }} - {{ $province->name }}</option>
                                 @endforeach
                             </select>
                         </div>

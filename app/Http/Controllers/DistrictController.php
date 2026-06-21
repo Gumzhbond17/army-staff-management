@@ -10,7 +10,7 @@ class DistrictController extends Controller
 {
     public function index(Request $request)
     {
-        $districts = District::with('province:id,name')
+        $districts = District::with('province:id,name,code')
             ->when($request->search, fn ($q) => $q
                 ->where('name', 'like', "%{$request->search}%")
             )
