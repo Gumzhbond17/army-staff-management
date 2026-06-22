@@ -8,10 +8,9 @@
     <title>@yield('title', config('app.name'))</title>
     <link rel="icon" type="image/png" href="{{ asset('assets/images/lao-army-logo.png') }}">
 
-    {{-- Bootstrap 5.3.8 --}}
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
     {{-- Google Sans --}}
     <link href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" rel="stylesheet">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
         * {
@@ -271,7 +270,6 @@
         @yield('content')
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     @stack('scripts')
 </body>
 

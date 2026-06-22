@@ -1,9 +1,7 @@
 {{-- resources/views/employees/add_form.blade.php --}}
 @extends('layouts.mainLayout')
 
-{{-- ===== Bootstrap Icons (not in main layout) ===== --}}
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
     /* ===== Background gradient on body ===== */
     body {
@@ -1026,7 +1024,7 @@
         }
         container.innerHTML = html || '';
     }
-$(document).ready(function () {
+document.addEventListener('DOMContentLoaded', function () {
 
     // ===== Select2 init (Bootstrap 5 theme) =====
     $('.select2').select2({

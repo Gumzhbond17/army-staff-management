@@ -176,7 +176,6 @@
          SCRIPTS — loaded directly in @section
          (avoids @stack timing issues with Vite)
     ══════════════════════════════════════════ --}}
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // Wait for Bootstrap to be ready (Vite may load it async)
         function waitForBootstrap(callback) {

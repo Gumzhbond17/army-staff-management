@@ -13,6 +13,7 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class EmployeeController extends Controller
 {
@@ -20,13 +21,18 @@ class EmployeeController extends Controller
     //  PRIVATE HELPERS
     // ================================================================
 
-    private function rules(): array
+    private function rules(?int $ignoreId = null): array
     {
+        $officerCodeUnique = Rule::unique('employees', 'officer_code');
+        if ($ignoreId) {
+            $officerCodeUnique->ignore($ignoreId);
+        }
+
         return [
             'full_name'            => ['required', 'string', 'max:255'],
             'gender'               => ['nullable', 'in:male,female'],
             'dob'                  => ['nullable', 'date'],
-            'officer_code'         => ['nullable', 'string', 'max:12'],
+            'officer_code'         => ['nullable', 'string', 'max:12', $officerCodeUnique],
             'id_card_number'       => ['nullable', 'string', 'max:25'],
             'unit_id'              => ['required', 'exists:units,id'],
             'work_status_id'       => ['required', 'exists:working_statuses,id'],
@@ -66,7 +72,17 @@ class EmployeeController extends Controller
             'previous_units'       => ['nullable', 'string'],
             'discipline_record'    => ['nullable', 'string'],
             'biography'            => ['nullable', 'string'],
-            'biography_attachment' => ['nullable', 'string'],
+            'biography_attachment' => ['nullable'],
+        ];
+    }
+
+    private function messages(): array
+    {
+        return [
+            'officer_code.unique' => 'ລະຫັດນາຍທະຫານນີ້ຖືກໃຊ້ແລ້ວ, ກະລຸນາໃຊ້ລະຫັດອື່ນ.',
+            'full_name.required'  => 'ກະລຸນາປ້ອນຊື່ ແລະ ນາມສະກຸນ.',
+            'unit_id.required'    => 'ກະລຸນາເລືອກກອງປະຈຳ.',
+            'work_status_id.required' => 'ກະລຸນາເລືອກສະຖານະການເຮັດວຽກ.',
         ];
     }
 
@@ -449,7 +465,7 @@ class EmployeeController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $validated = $request->validate($this->rules());
+        $validated = $request->validate($this->rules(), $this->messages());
 
         if ((int) $request->input('child_count', 0) > 0) {
             $request->validate($this->childrenRules());
@@ -581,7 +597,7 @@ class EmployeeController extends Controller
 
     public function update(Request $request, Employee $employee): RedirectResponse
     {
-        $validated = $request->validate($this->rules());
+        $validated = $request->validate($this->rules($employee->id), $this->messages());
 
         if ((int) $request->input('child_count', 0) > 0) {
             $request->validate($this->childrenRules());

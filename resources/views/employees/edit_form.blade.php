@@ -1,7 +1,6 @@
 @extends('layouts.mainLayout')
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
     body {
         background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 30%, #e0e7ff 60%, #f5f3ff 100%) !important;
@@ -386,7 +385,7 @@
                             <div class="col-md-4">
                                 <label class="form-label">ລະຫັດນາຍທະຫານ</label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-shield-star"></i></span>
+                                    <span class="input-group-text"><i class="bi bi-shield"></i></span>
                                     <input type="text" class="form-control @error('officer_code') is-invalid @enderror"
                                            name="officer_code"
                                            value="{{ old('officer_code', $employee->officer_code) }}"
@@ -995,7 +994,15 @@
         container.innerHTML = html;
     }
 
-$(document).ready(function () {
+document.addEventListener('DOMContentLoaded', function () {
+
+    // ===== Flatpickr – DD/MM/YYYY display, YYYY-MM-DD submission =====
+    flatpickr('input[type="date"]', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        allowInput: true,
+    });
 
     $('.select2').select2({
         theme: 'bootstrap-5',

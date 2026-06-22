@@ -1,7 +1,6 @@
 @extends('layouts.mainLayout')
 
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
     body {
         background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 30%, #e0e7ff 60%, #f5f3ff 100%) !important;
@@ -360,7 +359,6 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 (function () {
     const dropZone     = document.getElementById('dropZone');

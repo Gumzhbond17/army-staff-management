@@ -1,9 +1,7 @@
 {{-- resources/views/employees/add_form.blade.php --}}
 @extends('layouts.mainLayout')
 
-{{-- ===== Bootstrap Icons (not in main layout) ===== --}}
 @push('styles')
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <style>
     /* ===== Background gradient on body ===== */
     body {
@@ -475,7 +473,7 @@
                             <div class="col-md-4">
                                 <label class="form-label">ລະຫັດນາຍທະຫານ</label>
                                 <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-shield-star"></i></span>
+                                    <span class="input-group-text"><i class="bi bi-shield"></i></span>
                                     <input type="text" class="form-control @error('officer_code') is-invalid @enderror"
                                            name="officer_code" value="{{ old('officer_code') }}"
                                            placeholder="ສູງສຸດ 12 ຕົວ" maxlength="12">
@@ -1054,7 +1052,15 @@
         }
         container.innerHTML = html || '';
     }
-$(document).ready(function () {
+document.addEventListener('DOMContentLoaded', function () {
+
+    // ===== Flatpickr – DD/MM/YYYY display, YYYY-MM-DD submission =====
+    flatpickr('input[type="date"]', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        allowInput: true,
+    });
 
     // ===== Select2 init (Bootstrap 5 theme) =====
     $('.select2').select2({
@@ -1086,8 +1092,6 @@ $(document).ready(function () {
         loadDistricts('{{ old('current_province_id') }}', '#currentDistrict', '{{ old('current_district_id') }}');
     @endif
 
-    });
-
     $('#childCount').on('input', function () {
         renderChildren(parseInt(this.value) || 0);
     });
@@ -1100,6 +1104,8 @@ $(document).ready(function () {
         $(`[name="children[${i}][dob]"]`).val(child.dob ?? '');
         $(`[name="children[${i}][gender]"]`).val(child.gender ?? '');
         $(`[name="children[${i}][note]"]`).val(child.note ?? '');
+    });
+
     });
 
     // ===== Clear Form with SweetAlert confirm =====
