@@ -95,9 +95,12 @@ body {
 <body>
 
 {{-- ══ HEADER ══ --}}
+@php
+    $logoPath = public_path('images/logo.png');
+@endphp
 <div class="hdr">
-    @if(isset($logoPath) && file_exists($logoPath))
-        <img src="{{ $logoPath }}" class="logo" alt="logo">
+    @if(file_exists($logoPath))
+        <img src="data:image/png;base64,{{ base64_encode(file_get_contents($logoPath)) }}" class="logo" alt="logo">
     @endif
     <div class="org">ກົມຄຸ້ມຄອງພະນັກງານ</div>
     <div class="title">ຂໍ້ມູນພະນັກງານ</div>
@@ -149,9 +152,12 @@ body {
             </table>
         </td>
         {{-- Photo column 20% ≈ 37mm --}}
+        @php
+            $photoPath = storage_path('app/public/'.$employee->photo);
+        @endphp
         <td style="width:20%; text-align:center; vertical-align:middle; padding:4px 6px;">
-            @if($photoPath && file_exists($photoPath))
-                <img src="{{ $photoPath }}" width="82" height="103"
+            @if($employee->photo && file_exists($photoPath))
+                <img src="data:image/jpeg;base64,{{ base64_encode(file_get_contents($photoPath)) }}" width="82" height="103"
                      style="width:82px; height:103px; border:1.5px solid #1a3a6b; display:block; margin:0 auto;">
             @else
                 <div style="width:82px; height:103px; border:1.5px dashed #aaa; background:#f0f4fa; display:block; margin:0 auto;"></div>
