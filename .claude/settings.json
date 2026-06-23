@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npm run *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(php -r ' *)",
+      "Bash(php -r \"echo 'upload_max_filesize=' . ini_get\\('upload_max_filesize'\\) . PHP_EOL . 'post_max_size=' . ini_get\\('post_max_size'\\) . PHP_EOL . 'max_file_uploads=' . ini_get\\('max_file_uploads'\\) . PHP_EOL;\")"
     ]
   }
 }

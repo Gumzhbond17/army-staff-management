@@ -575,7 +575,7 @@
                                 name="birth_province_id" id="birthProvince">
                             <option value="">-- ເລືອກແຂວງ --</option>
                             @foreach($provinces ?? [] as $p)
-                                <option value="{{ $p->id }}" {{ old('birth_province_id') == $p->id ? 'selected' : '' }}>[{{ $p->code }}] {{ $p->name }}</option>
+                                <option value="{{ $p->id }}" {{ old('birth_province_id') == $p->id ? 'selected' : '' }}>({{ $p->code }}) {{ $p->name }}</option>
                             @endforeach
                         </select>
                         @error('birth_province_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -627,7 +627,7 @@
                                 name="current_province_id" id="currentProvince">
                             <option value="">-- ເລືອກແຂວງ --</option>
                             @foreach($provinces ?? [] as $p)
-                                <option value="{{ $p->id }}" {{ old('current_province_id') == $p->id ? 'selected' : '' }}>[{{ $p->code }}] {{ $p->name }}</option>
+                                <option value="{{ $p->id }}" {{ old('current_province_id') == $p->id ? 'selected' : '' }}>({{ $p->code }}) {{ $p->name }}</option>
                             @endforeach
                         </select>
                         @error('current_province_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
@@ -806,14 +806,16 @@
                         <label class="form-label">ຊື່ພໍ່ແມ່</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person-heart"></i></span>
-                            <input type="text" class="form-control" name="parents_name" value="{{ old('parents_name') }}" placeholder="ຊື່ພໍ່ ແລະ ແມ່">
+                            <input type="text" class="form-control @error('parents_name') is-invalid @enderror" name="parents_name" value="{{ old('parents_name') }}" placeholder="ຊື່ພໍ່ ແລະ ແມ່">
+                            @error('parents_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     <div class="col-md-5">
                         <label class="form-label">ຊື່ຄູ່ຊີວິດ</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-people"></i></span>
-                            <input type="text" class="form-control" name="spouse_name" value="{{ old('spouse_name') }}" placeholder="ຊື່ຄູ່ຊີວິດ">
+                            <input type="text" class="form-control @error('spouse_name') is-invalid @enderror" name="spouse_name" value="{{ old('spouse_name') }}" placeholder="ຊື່ຄູ່ຊີວິດ">
+                            @error('spouse_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     {{-- <div class="col-md-2">
@@ -871,7 +873,7 @@
                             <span class="text-muted ms-1" style="font-size:0.73rem;">(ແຕ່ອາຍຸ 8 ປີ)</span>
                         </label>
                         <textarea class="form-control @error('biography') is-invalid @enderror"
-                                  name="biography" rows="6"
+                                  name="biography" rows="6" maxlength="1200"
                                   placeholder="ລະບຸປະຫວັດການເຄື່ອນໄຫວ ແຕ່ອາຍຸ 8 ປີ ຂຶ້ນໄປ...">{{ old('biography') }}</textarea>
                         @error('biography')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
@@ -1007,7 +1009,7 @@
                             placeholder="ນາມສະກຸນ" value="{{ old('children.${i}.last_name') }}">
                     </div>
                     <div class="col-md-2">
-                        <input type="date" class="form-control" name="children[${i}][dob]">
+                        <input type="text" class="form-control child-dob" name="children[${i}][dob]" placeholder="DD/MM/YYYY" autocomplete="off">
                     </div>
                     <div class="col-md-2">
                         <select class="form-select" name="children[${i}][gender]">
@@ -1023,8 +1025,22 @@
             </div>`;
         }
         container.innerHTML = html || '';
+        flatpickr('#childrenContainer .child-dob', {
+            dateFormat: 'Y-m-d',
+            altInput: true,
+            altFormat: 'd/m/Y',
+            allowInput: true,
+        });
     }
 document.addEventListener('DOMContentLoaded', function () {
+
+    // ===== Flatpickr – DD/MM/YYYY display, YYYY-MM-DD submission =====
+    flatpickr('input[type="date"]', {
+        dateFormat: 'Y-m-d',
+        altInput: true,
+        altFormat: 'd/m/Y',
+        allowInput: true,
+    });
 
     // ===== Select2 init (Bootstrap 5 theme) =====
     $('.select2').select2({
@@ -1067,7 +1083,10 @@ document.addEventListener('DOMContentLoaded', function () {
     oldChildren.forEach((child, i) => {
         $(`[name="children[${i}][first_name]"]`).val(child.first_name ?? '');
         $(`[name="children[${i}][last_name]"]`).val(child.last_name ?? '');
-        $(`[name="children[${i}][dob]"]`).val(child.dob ?? '');
+        const dobEl = document.querySelector(`[name="children[${i}][dob]"]`);
+        if (dobEl && dobEl._flatpickr && child.dob) {
+            dobEl._flatpickr.setDate(child.dob, false);
+        }
         $(`[name="children[${i}][gender]"]`).val(child.gender ?? '');
         $(`[name="children[${i}][note]"]`).val(child.note ?? '');
     });

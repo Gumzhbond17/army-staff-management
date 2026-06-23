@@ -10,18 +10,20 @@ body {
     font-size: 10.5pt;
     color: #111;
     line-height: 1.3;
-    padding-bottom: 32mm; /* reserve space for fixed bottom block */
+    padding-bottom: 100mm; /* reserve space for fixed bottom block */
 }
 
 /* ── Header ── */
 .hdr {
     text-align: center;
     border-bottom: 1.5px solid #1a3a6b;
-    padding-bottom: 4px;
-    margin-bottom: 4px;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
 }
-.hdr .title { font-size: 15pt; font-weight: bold; color: #1a3a6b; }
-.hdr .sub   { font-size: 10pt;  color: #555; margin-top: 1px; }
+.hdr .logo    { width: 62px; height: 62px; display: block; margin: 0 auto 4px; }
+.hdr .org     { font-size: 12pt; font-weight: bold; color: #1a3a6b; margin-bottom: 6px; }
+.hdr .title   { font-size: 15pt; font-weight: bold; color: #1a3a6b; }
+.hdr .sub     { font-size: 10pt;  color: #555; margin-top: 1px; }
 
 /* ── Section table (used for every section) ── */
 .ft { width:100%; border-collapse:collapse; margin-bottom:2px; }
@@ -73,7 +75,7 @@ body {
 
 /* Signature */
 .sig   { width:100%; border-collapse:collapse; }
-.sig td { text-align:center; font-size:10.5pt; padding:6px 6px 0; vertical-align:top; height:246px; }
+.sig td { text-align:center; font-size:10.5pt; padding:6px 6px 0; vertical-align:top; height:190px; }
 .sig-line { border-top:0.8px solid #333; margin:4px 14px 3px; }
 .sig-lbl  { font-size:11pt; color:#555; }
 
@@ -94,8 +96,11 @@ body {
 
 {{-- ══ HEADER ══ --}}
 <div class="hdr">
-    <div class="title">ເອກະສານຂໍ້ມູນພະນັກງານ</div>
-    {{-- <div class="sub">ກອງທັບປະຊາຊົນລາວ &nbsp;·&nbsp; ລະບົບຈັດການຂໍ້ມູນພະນັກງານ</div> --}}
+    @if(isset($logoPath) && file_exists($logoPath))
+        <img src="{{ $logoPath }}" class="logo" alt="logo">
+    @endif
+    <div class="org">ກົມຄຸ້ມຄອງພະນັກງານ</div>
+    <div class="title">ຂໍ້ມູນພະນັກງານ</div>
 </div>
 
 {{-- ══ ໝວດ I · ຂໍ້ມູນທົ່ວໄປ  (fields 80% | photo 20%) ══ --}}
@@ -284,16 +289,13 @@ body {
 {{-- ══ ໝວດ VIII · ປະຫວັດການເຄື່ອນໄຫວ ══ --}}
 @php
     $bio = $employee->biography ?? '-';
-    if (mb_strlen($bio) > 600) {
-        $bio = mb_substr($bio, 0, 600) . ' ...';
-    }
 @endphp
 <table class="ft">
     <tr>
         <td class="sh">ໝວດ VIII &nbsp;·&nbsp; ປະຫວັດການເຄື່ອນໄຫວ <span style="font-size:6.5pt; font-weight:normal;">(ແຕ່ອາຍຸ 8 ປີ)</span></td>
     </tr>
     <tr>
-        <td style="white-space:pre-wrap; font-size:10.5pt; line-height:1.5; padding:4px 5px; vertical-align:top;">{{ $bio }}</td>
+        <td style="white-space:pre-wrap; word-break:break-word; font-size:10.5pt; line-height:1.5; padding:10px 5px; vertical-align:top;">{{ $bio }}</td>
     </tr>
 </table>
 

@@ -321,8 +321,8 @@
                     {{-- Photo --}}
                     <div class="col-lg-2 col-md-3 d-flex flex-column justify-content-start">
                         <label class="form-label text-center w-100">ຮູບຖ່າຍ</label>
-                        <div class="photo-upload-area w-100">
-                            <input type="file" id="photoInput" name="photo" accept="image/*" onchange="previewPhoto(this)">
+                        <div class="photo-upload-area w-100 @error('photo') border-danger @enderror">
+                            <input type="file" id="photoInput" name="photo" accept="image/jpg,image/jpeg,image/png,image/webp" onchange="previewPhoto(this)">
                             <img id="photoPreview"
                                  class="photo-preview"
                                  src="{{ $existingPhoto ?? '#' }}"
@@ -330,10 +330,11 @@
                                  style="{{ $existingPhoto ? 'display:block; margin: 0 auto;' : 'margin: 0 auto;' }}">
                             <div id="uploadPlaceholder" style="{{ $existingPhoto ? 'display:none' : '' }}">
                                 <div class="upload-icon"><i class="bi bi-camera"></i></div>
-                                <p class="mb-0 text-muted" style="font-size:0.75rem;">ກົດເພື່ອອັບໂຫຼດ<br><span class="text-primary">JPG, PNG</span></p>
+                                <p class="mb-0 text-muted" style="font-size:0.75rem;">ກົດເພື່ອອັບໂຫຼດ<br><span class="text-primary">JPG, PNG (ສູງສຸດ 2MB)</span></p>
                             </div>
                         </div>
                         <p id="photoFileName" class="text-muted mt-1 mb-0" style="font-size:0.7rem; text-align:center; display:none;"></p>
+                        @error('photo')<div class="text-danger mt-1" style="font-size:0.76rem;">{{ $message }}</div>@enderror
                     </div>
 
                     <div class="col-lg-10 col-md-9">
@@ -503,7 +504,7 @@
                             @foreach($provinces as $p)
                                 <option value="{{ $p->id }}"
                                     {{ old('birth_province_id', $employee->birth_province_id) == $p->id ? 'selected' : '' }}>
-                                    [{{ $p->code }}] {{ $p->name }}
+                                    ({{ $p->code }}) {{ $p->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -550,7 +551,7 @@
                             @foreach($provinces as $p)
                                 <option value="{{ $p->id }}"
                                     {{ old('current_province_id', $employee->current_province_id) == $p->id ? 'selected' : '' }}>
-                                    [{{ $p->code }}] {{ $p->name }}
+                                    ({{ $p->code }}) {{ $p->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -744,16 +745,18 @@
                         <label class="form-label">ຊື່ພໍ່ແມ່</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person-heart"></i></span>
-                            <input type="text" class="form-control" name="parents_name"
+                            <input type="text" class="form-control @error('parents_name') is-invalid @enderror" name="parents_name"
                                    value="{{ old('parents_name', $employee->parents_name) }}" placeholder="ຊື່ພໍ່ ແລະ ແມ່">
+                            @error('parents_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     <div class="col-md-5">
                         <label class="form-label">ຊື່ຄູ່ຊີວິດ</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-people"></i></span>
-                            <input type="text" class="form-control" name="spouse_name"
+                            <input type="text" class="form-control @error('spouse_name') is-invalid @enderror" name="spouse_name"
                                    value="{{ old('spouse_name', $employee->spouse_name) }}" placeholder="ຊື່ຄູ່ຊີວິດ">
+                            @error('spouse_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     <div class="col-md-2">
@@ -801,7 +804,7 @@
                             <span class="text-muted ms-1" style="font-size:0.73rem;">(ແຕ່ອາຍຸ 8 ປີ)</span>
                         </label>
                         <textarea class="form-control @error('biography') is-invalid @enderror"
-                                  name="biography" rows="6"
+                                  name="biography" rows="6" maxlength="1200"
                                   placeholder="ລະບຸປະຫວັດການເຄື່ອນໄຫວ ແຕ່ອາຍຸ 8 ປີ ຂຶ້ນໄປ...">{{ old('biography', $employee->biography) }}</textarea>
                         @error('biography')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
@@ -974,8 +977,8 @@
                                placeholder="ນາມສະກຸນ" value="${c.last_name || ''}">
                     </div>
                     <div class="col-md-2">
-                        <input type="date" class="form-control" name="children[${i}][dob]"
-                               value="${c.dob || ''}">
+                        <input type="text" class="form-control child-dob" name="children[${i}][dob]"
+                               placeholder="DD/MM/YYYY" autocomplete="off" data-date="${c.dob || ''}">
                     </div>
                     <div class="col-md-2">
                         <select class="form-select" name="children[${i}][gender]">
@@ -992,6 +995,15 @@
             </div>`;
         }
         container.innerHTML = html;
+        container.querySelectorAll('.child-dob').forEach(el => {
+            const fp = flatpickr(el, {
+                dateFormat: 'Y-m-d',
+                altInput: true,
+                altFormat: 'd/m/Y',
+                allowInput: true,
+            });
+            if (el.dataset.date) fp.setDate(el.dataset.date, false);
+        });
     }
 
 document.addEventListener('DOMContentLoaded', function () {

@@ -23,9 +23,18 @@ class EmployeeController extends Controller
 
     private function rules(?int $ignoreId = null): array
     {
-        $officerCodeUnique = Rule::unique('employees', 'officer_code');
+        $officerCodeUnique  = Rule::unique('employees', 'officer_code');
+        $idCardUnique       = Rule::unique('employees', 'id_card_number');
+        $parentsNameUnique  = Rule::unique('employees', 'parents_name');
+        $spouseNameUnique   = Rule::unique('employees', 'spouse_name');
+        $biographyUnique    = Rule::unique('employees', 'biography');
+
         if ($ignoreId) {
             $officerCodeUnique->ignore($ignoreId);
+            $idCardUnique->ignore($ignoreId);
+            $parentsNameUnique->ignore($ignoreId);
+            $spouseNameUnique->ignore($ignoreId);
+            $biographyUnique->ignore($ignoreId);
         }
 
         return [
@@ -33,7 +42,7 @@ class EmployeeController extends Controller
             'gender'               => ['nullable', 'in:male,female'],
             'dob'                  => ['nullable', 'date'],
             'officer_code'         => ['nullable', 'string', 'max:12', $officerCodeUnique],
-            'id_card_number'       => ['nullable', 'string', 'max:25'],
+            'id_card_number'       => ['nullable', 'string', 'max:25', $idCardUnique],
             'unit_id'              => ['required', 'exists:units,id'],
             'work_status_id'       => ['required', 'exists:working_statuses,id'],
             'party_duty'           => ['nullable', 'string', 'max:255'],
@@ -62,8 +71,8 @@ class EmployeeController extends Controller
             'candidate_party_date' => ['nullable', 'date'],
             'full_party_date'      => ['nullable', 'date'],
             'current_rank_date'    => ['nullable', 'date'],
-            'parents_name'         => ['nullable', 'string', 'max:255'],
-            'spouse_name'          => ['nullable', 'string', 'max:255'],
+            'parents_name'         => ['nullable', 'string', 'max:255', $parentsNameUnique],
+            'spouse_name'          => ['nullable', 'string', 'max:255', $spouseNameUnique],
 
             // BUG FIX #2: child_count must be included in validation rules
             // so it passes through $request->validate() without being stripped.
@@ -71,7 +80,8 @@ class EmployeeController extends Controller
 
             'previous_units'       => ['nullable', 'string'],
             'discipline_record'    => ['nullable', 'string'],
-            'biography'            => ['nullable', 'string'],
+            'biography'            => ['nullable', 'string', $biographyUnique],
+            'photo'                => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'biography_attachment' => ['nullable'],
         ];
     }
@@ -79,9 +89,16 @@ class EmployeeController extends Controller
     private function messages(): array
     {
         return [
-            'officer_code.unique' => 'ລະຫັດນາຍທະຫານນີ້ຖືກໃຊ້ແລ້ວ, ກະລຸນາໃຊ້ລະຫັດອື່ນ.',
-            'full_name.required'  => 'ກະລຸນາປ້ອນຊື່ ແລະ ນາມສະກຸນ.',
-            'unit_id.required'    => 'ກະລຸນາເລືອກກອງປະຈຳ.',
+            'officer_code.unique'   => 'ລະຫັດນາຍທະຫານນີ້ຖືກໃຊ້ແລ້ວ, ກະລຸນາໃຊ້ລະຫັດອື່ນ.',
+            'id_card_number.unique' => 'ລະຫັດບັດປະຈຳຕົວນີ້ຖືກໃຊ້ແລ້ວ, ກະລຸນາກວດສອບຄືນ.',
+            'parents_name.unique'   => 'ຊື່ພໍ່ ແລະ ແມ່ນີ້ຖືກໃຊ້ແລ້ວ, ກະລຸນາກວດສອບຄືນ.',
+            'spouse_name.unique'    => 'ຊື່ຄູ່ຊີວິດນີ້ຖືກໃຊ້ແລ້ວ, ກະລຸນາກວດສອບຄືນ.',
+            'biography.unique'      => 'ປະຫວັດການເຄື່ອນໄຫວນີ້ຖືກໃຊ້ແລ້ວ, ກະລຸນາກວດສອບຄືນ.',
+            'photo.image'          => 'ຮູບຖ່າຍຕ້ອງເປັນໄຟລ໌ຮູບພາບ.',
+            'photo.mimes'          => 'ຮູບຖ່າຍຕ້ອງເປັນ JPG, PNG ຫຼື WebP.',
+            'photo.max'            => 'ຮູບຖ່າຍຕ້ອງມີຂະໜາດບໍ່ເກີນ 2MB.',
+            'full_name.required'    => 'ກະລຸນາປ້ອນຊື່ ແລະ ນາມສະກຸນ.',
+            'unit_id.required'      => 'ກະລຸນາເລືອກກອງປະຈຳ.',
             'work_status_id.required' => 'ກະລຸນາເລືອກສະຖານະການເຮັດວຽກ.',
         ];
     }
@@ -476,10 +493,8 @@ class EmployeeController extends Controller
         $validated['created_by'] = Auth::id();
         $validated['updated_by'] = Auth::id();
 
-        if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
-            $request->validate(['photo' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120']]);
-            $validated['photo'] = $request->file('photo')
-                ->store('employees/photos', 'public');
+        if (!empty($validated['photo'])) {
+            $validated['photo'] = $validated['photo']->store('employees/photos', 'public');
         }
 
         if ($request->hasFile('biography_attachment') && $request->file('biography_attachment')->isValid()) {
@@ -526,7 +541,8 @@ class EmployeeController extends Controller
         ]);
 
         $photoPath = $employee->photo ? public_path('storage/' . $employee->photo) : null;
-        $html = view('employees.pdf', compact('employee', 'photoPath'))->render();
+        $logoPath  = public_path('assets/images/lao-army-logo.png');
+        $html = view('employees.pdf', compact('employee', 'photoPath', 'logoPath'))->render();
 
         $tempDir = storage_path('app/mpdf');
         if (!is_dir($tempDir)) {
@@ -607,13 +623,11 @@ class EmployeeController extends Controller
 
         $validated['updated_by'] = Auth::id();
 
-        if ($request->hasFile('photo') && $request->file('photo')->isValid()) {
-            $request->validate(['photo' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120']]);
+        if (!empty($validated['photo'])) {
             if ($employee->photo) {
                 Storage::disk('public')->delete($employee->photo);
             }
-            $validated['photo'] = $request->file('photo')
-                ->store('employees/photos', 'public');
+            $validated['photo'] = $validated['photo']->store('employees/photos', 'public');
         } else {
             unset($validated['photo']);
         }
