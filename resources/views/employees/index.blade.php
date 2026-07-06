@@ -94,6 +94,7 @@
                             <th>ສະຖານະ</th>
                             <th>ໝູ່ເລືອດ</th>
                             <th>ວັນເດືອນປີເກີດ</th>
+                            <th>ອາຍຸ</th>
                             <th style="width:140px;">ຈັດການ</th>
                         </tr>
                     </thead>
@@ -185,6 +186,17 @@
                                 </td>
 
                                 <td>
+                                    @if($employee->age !== null)
+                                        <span class="badge rounded-pill"
+                                              style="background:#EEF2FF;color:#4338CA;font-weight:600;font-size:12px;">
+                                            {{ $employee->age }} ປີ
+                                        </span>
+                                    @else
+                                        <span class="text-muted">—</span>
+                                    @endif
+                                </td>
+
+                                <td>
                                     <div class="d-flex gap-2">
                                         <a href="{{ route('employees.show', $employee->id) }}"
                                            class="btn btn-sm btn-outline-primary">
@@ -213,7 +225,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="10" class="text-center py-5 text-muted">
+                                <td colspan="11" class="text-center py-5 text-muted">
                                     <i class="bi bi-inbox fs-3 d-block mb-2"></i>
                                     ບໍ່ມີຂໍ້ມູນພະນັກງານ
                                 </td>

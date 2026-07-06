@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProvinceController;
 use App\Http\Controllers\RankController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SiteSettingController;
 use App\Http\Controllers\StaffCategoryController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
@@ -64,6 +65,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
     // Admin-only routes
     Route::middleware('role:admin')->group(function () {
+        Route::get('/site-settings', [SiteSettingController::class, 'edit'])->name('site-settings.edit');
+        Route::put('/site-settings', [SiteSettingController::class, 'update'])->name('site-settings.update');
         Route::resource('employees', EmployeeController::class)->only(['edit', 'update', 'destroy']);
         Route::resource('users', UserController::class)
             ->only(['index', 'store', 'update', 'destroy']);

@@ -109,6 +109,19 @@ class Employee extends Model
         return $this->photo ? asset('storage/' . $this->photo) : null;
     }
 
+    /**
+     * Age in whole years calculated from dob, or null if dob is empty.
+     * Usage in Blade: $employee->age
+     */
+    public function getAgeAttribute(): ?int
+    {
+        if (!$this->dob || $this->dob->isFuture()) {
+            return null;
+        }
+
+        return $this->dob->age;
+    }
+
     public function getBiographyAttachmentUrlAttribute(): ?string
     {
         return $this->biography_attachment ? asset('storage/' . $this->biography_attachment) : null;

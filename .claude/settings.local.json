@@ -5,7 +5,16 @@
       "PowerShell(Get-ChildItem \"$env:USERPROFILE\\\\.config\\\\herd\" -Recurse -Filter \"php.ini\" 2>$null | Select-Object FullName | Select-Object -First 5; Get-ChildItem \"C:\\\\ProgramData\\\\Herd\" -Recurse -Filter \"php.ini\" -ErrorAction SilentlyContinue | Select-Object FullName | Select-Object -First 5)",
       "PowerShell(herd restart php 2>&1)",
       "PowerShell(& \"C:\\\\Program Files\\\\Herd\\\\resources\\\\cli\\\\bin\\\\herd\" restart 2>&1)",
-      "Bash(composer require *)"
+      "Bash(composer require *)",
+      "PowerShell(php artisan view:cache; php artisan view:clear)",
+      "PowerShell(php \"C:\\\\Users\\\\THIPPH~1.P\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-thipphavanh-p-Herd-army-staff-management\\\\d71bfa7e-3b79-420c-84a7-155bdc268657\\\\scratchpad\\\\test_pdf.php\")",
+      "PowerShell(php -r \"var_dump\\(extension_loaded\\('gd'\\)\\);\")",
+      "PowerShell(php \"C:\\\\Users\\\\THIPPH~1.P\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-thipphavanh-p-Herd-army-staff-management\\\\d71bfa7e-3b79-420c-84a7-155bdc268657\\\\scratchpad\\\\resize_logo.php\")",
+      "PowerShell(php artisan view:clear; php \"C:\\\\Users\\\\THIPPH~1.P\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-thipphavanh-p-Herd-army-staff-management\\\\d71bfa7e-3b79-420c-84a7-155bdc268657\\\\scratchpad\\\\test_pdf.php\")",
+      "PowerShell(php artisan migrate:status | Select-Object -Last 8)",
+      "PowerShell(php artisan migrate)",
+      "PowerShell(php \"C:\\\\Users\\\\THIPPH~1.P\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-thipphavanh-p-Herd-army-staff-management\\\\d71bfa7e-3b79-420c-84a7-155bdc268657\\\\scratchpad\\\\test_settings.php\")",
+      "PowerShell(php artisan view:cache; php artisan view:clear; php artisan route:list --name=site-settings)"
     ]
   }
 }

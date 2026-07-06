@@ -60,10 +60,10 @@ class EmployeeController extends Controller
             'theory_from'          => ['nullable', 'string', 'max:255'],
             'profession_level'     => ['nullable', 'string', 'max:255'],
             'profession_from'      => ['nullable', 'string', 'max:255'],
-            'nationality'          => ['nullable', 'string', 'max:100'],
-            'ethnicity_group'      => ['nullable', 'string', 'max:100'],
-            'tribe'                => ['nullable', 'string', 'max:100'],
-            'religion'             => ['nullable', 'string', 'max:100'],
+            'nationality'          => ['required', 'string', 'max:100'],
+            'ethnicity_group'      => ['required', 'string', 'max:100'],
+            'tribe'                => ['required', 'string', 'max:100'],
+            'religion'             => ['required', 'string', 'max:100'],
             'class_before_1975'    => ['nullable', 'string', 'max:100'],
             'class_after_1975'     => ['nullable', 'string', 'max:100'],
             'join_revolution_date' => ['nullable', 'date'],
@@ -71,7 +71,7 @@ class EmployeeController extends Controller
             'candidate_party_date' => ['nullable', 'date'],
             'full_party_date'      => ['nullable', 'date'],
             'current_rank_date'    => ['nullable', 'date'],
-            'parents_name'         => ['nullable', 'string', 'max:255', $parentsNameUnique],
+            'parents_name'         => ['required', 'string', 'max:255', $parentsNameUnique],
             'spouse_name'          => ['nullable', 'string', 'max:255', $spouseNameUnique],
 
             // BUG FIX #2: child_count must be included in validation rules
@@ -100,6 +100,11 @@ class EmployeeController extends Controller
             'full_name.required'    => 'ກະລຸນາປ້ອນຊື່ ແລະ ນາມສະກຸນ.',
             'unit_id.required'      => 'ກະລຸນາເລືອກກອງປະຈຳ.',
             'work_status_id.required' => 'ກະລຸນາເລືອກສະຖານະການເຮັດວຽກ.',
+            'nationality.required'     => 'ກະລຸນາປ້ອນສັນຊາດ.',
+            'ethnicity_group.required' => 'ກະລຸນາປ້ອນເຊື້ອຊາດ.',
+            'tribe.required'           => 'ກະລຸນາປ້ອນຊົນເຜົ່າ.',
+            'religion.required'        => 'ກະລຸນາປ້ອນສາດສະໜາ.',
+            'parents_name.required'    => 'ກະລຸນາປ້ອນຊື່ພໍ່ແມ່.',
         ];
     }
 
@@ -569,6 +574,11 @@ class EmployeeController extends Controller
             'margin_left'   => 8,
             'margin_right'  => 8,
         ]);
+
+        // Base64-embedded images (logo + employee photo, up to 2MB) can push
+        // the HTML past the default 1MB pcre.backtrack_limit, which makes
+        // mPDF's WriteHTML() throw. Raise it for this request only.
+        ini_set('pcre.backtrack_limit', '10000000');
 
         $mpdf->SetTitle('ຂໍ້ມູນພະນັກງານ - ' . $employee->full_name);
         $mpdf->WriteHTML($html);

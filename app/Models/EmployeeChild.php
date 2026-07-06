@@ -16,5 +16,18 @@ class EmployeeChild extends Model
     {
         return $this->belongsTo(Employee::class);
     }
+
+    /**
+     * Age in whole years calculated from dob, or null if dob is empty.
+     * Usage in Blade: $child->age
+     */
+    public function getAgeAttribute(): ?int
+    {
+        if (!$this->dob || $this->dob->isFuture()) {
+            return null;
+        }
+
+        return $this->dob->age;
+    }
 }
 

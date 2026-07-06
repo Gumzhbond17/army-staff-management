@@ -63,6 +63,13 @@
                                 <i class="bi bi-geo me-1"></i>ຂໍ້ມູນເມືອງ
                             </a>
                         </li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item {{ request()->routeIs('site-settings.*') ? 'active' : '' }}"
+                            href="{{ route('site-settings.edit') }}">
+                                <i class="bi bi-sliders me-1"></i>ຕັ້ງຄ່າໜ້າຫຼັກ
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 @endif

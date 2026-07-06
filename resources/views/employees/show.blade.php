@@ -324,6 +324,10 @@
                             <div class="info-value">
                                 @if($employee->dob)
                                     <span class="date-chip"><i class="bi bi-calendar3"></i>{{ $employee->dob->format('d/m/Y') }}</span>
+                                    <span class="badge rounded-pill ms-1"
+                                          style="background:#EEF2FF;color:#4338CA;font-weight:600;font-size:0.78rem;">
+                                        ອາຍຸ {{ $employee->age }} ປີ
+                                    </span>
                                 @else
                                     <span class="empty">-</span>
                                 @endif
@@ -561,6 +565,7 @@
                             <th>ຊື່</th>
                             <th>ນາມສະກຸນ</th>
                             <th>ວັນເດືອນປີເກີດ</th>
+                            <th>ອາຍຸ</th>
                             <th>ເພດ</th>
                             <th>ໝາຍເຫດ</th>
                         </tr>
@@ -575,6 +580,15 @@
                                 @if($child->dob)
                                     <span class="date-chip" style="font-size:0.8rem; padding:0.2rem 0.6rem;">
                                         <i class="bi bi-calendar3"></i>{{ $child->dob->format('d/m/Y') }}
+                                    </span>
+                                @else -
+                                @endif
+                            </td>
+                            <td>
+                                @if($child->age !== null)
+                                    <span class="badge rounded-pill"
+                                          style="background:#EEF2FF;color:#4338CA;font-weight:600;font-size:0.78rem;">
+                                        {{ $child->age }} ປີ
                                     </span>
                                 @else -
                                 @endif

@@ -96,13 +96,18 @@ body {
 
 {{-- ══ HEADER ══ --}}
 @php
-    $logoPath = public_path('images/logo.png');
+    // Prefer the downscaled copy — embedding the full-size (1MB+) logo as
+    // base64 pushes the HTML past pcre.backtrack_limit and breaks mPDF.
+    $logoPath = public_path('assets/images/lao-army-logo-pdf.png');
+    if (!file_exists($logoPath)) {
+        $logoPath = public_path('assets/images/lao-army-logo.png');
+    }
 @endphp
 <div class="hdr">
     @if(file_exists($logoPath))
         <img src="data:image/png;base64,{{ base64_encode(file_get_contents($logoPath)) }}" class="logo" alt="logo">
     @endif
-    <div class="org">ກົມຄຸ້ມຄອງພະນັກງານ</div>
+    <div class="org">{{ \App\Models\SiteSetting::get('department_name', 'ກົມຄຸ້ມຄອງພະນັກງານ') }}</div>
     <div class="title">ຂໍ້ມູນພະນັກງານ</div>
 </div>
 
@@ -125,7 +130,7 @@ body {
                         @else - @endif
                     </td>
                     <td class="lb" style="border:0.5px solid #94a3b8; padding:2px 4px;">ວັນເດືອນປີເກີດ</td>
-                    <td style="border:0.5px solid #94a3b8; padding:2px 4px;">{{ $employee->dob ? $employee->dob->format('d/m/Y') : '-' }}</td>
+                    <td style="border:0.5px solid #94a3b8; padding:2px 4px;">{{ $employee->dob ? $employee->dob->format('d/m/Y') . ($employee->age !== null ? ' (ອາຍຸ ' . $employee->age . ' ປີ)' : '') : '-' }}</td>
                 </tr>
                 <tr>
                     <td class="lb" style="border:0.5px solid #94a3b8; padding:2px 4px;">ໝູ່ເລືອດ</td>
@@ -259,7 +264,7 @@ body {
                     <tr>
                         <th style="width:22px">#</th>
                         <th>ຊື່</th><th>ນາມສະກຸນ</th>
-                        <th>ວັນເດືອນປີເກີດ</th><th>ເພດ</th><th>ໝາຍເຫດ</th>
+                        <th>ວັນເດືອນປີເກີດ</th><th>ອາຍຸ</th><th>ເພດ</th><th>ໝາຍເຫດ</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -269,6 +274,7 @@ body {
                         <td>{{ $child->first_name ?? '-' }}</td>
                         <td>{{ $child->last_name ?? '-' }}</td>
                         <td>{{ $child->dob ? $child->dob->format('d/m/Y') : '-' }}</td>
+                        <td>{{ $child->age !== null ? $child->age . ' ປີ' : '-' }}</td>
                         <td>
                             @if($child->gender === 'male') <span class="bm">ຊາຍ</span>
                             @elseif($child->gender === 'female') <span class="bf">ຍິງ</span>
@@ -328,7 +334,7 @@ body {
     </table>
     <div class="ftr">
         ວັນທີພິມ: {{ now()->format('d/m/Y H:i') }}
-        &nbsp;·&nbsp; ເອກະສານນີ້ອອກໂດຍ ກົມຄຸ້ມຄອງພະນັກງານ ລະບົບຈັດການຂໍ້ມູນພະນັກງານ
+        &nbsp;·&nbsp; ເອກະສານນີ້ອອກໂດຍ {{ \App\Models\SiteSetting::get('department_name', 'ກົມຄຸ້ມຄອງພະນັກງານ') }} ລະບົບຈັດການຂໍ້ມູນພະນັກງານ
         &nbsp;·&nbsp; ຫ້າມນຳໃຊ້ໂດຍບໍ່ໄດ້ຮັບອະນຸຍາດ
     </div>
 </div>

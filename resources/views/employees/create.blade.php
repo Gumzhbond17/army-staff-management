@@ -461,7 +461,10 @@
 
                             {{-- DOB --}}
                             <div class="col-md-4">
-                                <label class="form-label">ວັນເດືອນປີເກີດ</label>
+                                <label class="form-label">ວັນເດືອນປີເກີດ
+                                    <span id="dobAgeBadge" class="badge rounded-pill ms-1"
+                                          style="background:rgba(99,102,241,0.12);color:#4338ca;font-size:0.72rem;display:none;"></span>
+                                </label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-calendar-date"></i></span>
                                     <input type="date" class="form-control @error('dob') is-invalid @enderror"
@@ -720,31 +723,39 @@
             <div class="card-body-inner">
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label">ສັນຊາດ</label>
+                        <label class="form-label">ສັນຊາດ <span class="required-star">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-flag"></i></span>
-                            <input type="text" class="form-control" name="nationality" value="{{ old('nationality') }}" placeholder="ສັນຊາດ">
+                            <input type="text" class="form-control @error('nationality') is-invalid @enderror"
+                                   name="nationality" value="{{ old('nationality') }}" placeholder="ສັນຊາດ" required>
+                            @error('nationality')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">ເຊື້ອຊາດ</label>
+                        <label class="form-label">ເຊື້ອຊາດ <span class="required-star">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-people"></i></span>
-                            <input type="text" class="form-control" name="ethnicity_group" value="{{ old('ethnicity_group') }}" placeholder="ເຊື້ອຊາດ">
+                            <input type="text" class="form-control @error('ethnicity_group') is-invalid @enderror"
+                                   name="ethnicity_group" value="{{ old('ethnicity_group') }}" placeholder="ເຊື້ອຊາດ" required>
+                            @error('ethnicity_group')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">ຊົນເຜົ່າ</label>
+                        <label class="form-label">ຊົນເຜົ່າ <span class="required-star">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person-lines-fill"></i></span>
-                            <input type="text" class="form-control" name="tribe" value="{{ old('tribe') }}" placeholder="ຊົນເຜົ່າ">
+                            <input type="text" class="form-control @error('tribe') is-invalid @enderror"
+                                   name="tribe" value="{{ old('tribe') }}" placeholder="ຊົນເຜົ່າ" required>
+                            @error('tribe')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">ສາດສະໜາ</label>
+                        <label class="form-label">ສາດສະໜາ <span class="required-star">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-yin-yang"></i></span>
-                            <input type="text" class="form-control" name="religion" value="{{ old('religion') }}" placeholder="ສາດສະໜາ">
+                            <input type="text" class="form-control @error('religion') is-invalid @enderror"
+                                   name="religion" value="{{ old('religion') }}" placeholder="ສາດສະໜາ" required>
+                            @error('religion')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -766,22 +777,22 @@
         </div>
 
         {{-- ================================================================
-             ໝວດ VI: ວັນທີສຳຄັນ
+             ໝວດ VI: ວັນເດືອນປີທີ່ສຳຄັນ
         ================================================================ --}}
         <div class="glass-card mb-4" id="sec6">
             <div class="section-header">
                 <div class="section-icon" style="background:linear-gradient(135deg,#f97316,#fb923c)"><i class="bi bi-calendar-event"></i></div>
-                <h6>ໝວດ VI · ວັນທີສຳຄັນ</h6>
+                <h6>ໝວດ VI · ວັນເດືອນປີທີ່ສຳຄັນ</h6>
             </div>
             <div class="card-body-inner">
                 <div class="row g-3">
                     @php
                         $dateFields = [
-                            'join_revolution_date' => ['label' => 'ວັນເຂົ້າປະຕິວັດ',   'icon' => 'bi-flag-fill'],
-                            'join_army_date'       => ['label' => 'ວັນເຂົ້າທະຫານ',      'icon' => 'bi-shield-fill'],
-                            'candidate_party_date' => ['label' => 'ວັນເຂົ້າພັກສຳຮອງ',   'icon' => 'bi-calendar-plus'],
-                            'full_party_date'      => ['label' => 'ວັນເຂົ້າພັກສົມບູນ',  'icon' => 'bi-calendar-check'],
-                            'current_rank_date'    => ['label' => 'ວັນໄດ້ຊັ້ນປັດຈຸບັນ', 'icon' => 'bi-award-fill'],
+                            'join_revolution_date' => ['label' => 'ວັນເດືອນປີເຂົ້າການປະຕິວັດ',   'icon' => 'bi-flag-fill'],
+                            'join_army_date'       => ['label' => 'ວັນເດືອນປີເຂົ້າທະຫານ',      'icon' => 'bi-shield-fill'],
+                            'candidate_party_date' => ['label' => 'ວັນເດືອນປີເຂົ້າພັກສຳຮອງ',   'icon' => 'bi-calendar-plus'],
+                            'full_party_date'      => ['label' => 'ວັນເດືອນປີເຂົ້າພັກສົມບູນ',  'icon' => 'bi-calendar-check'],
+                            'current_rank_date'    => ['label' => 'ວັນເດືອນປີໄດ້ຊັ້ນປັດຈຸບັນ', 'icon' => 'bi-award-fill'],
                         ];
                     @endphp
                     @foreach($dateFields as $field => $meta)
@@ -810,10 +821,12 @@
             <div class="card-body-inner">
                 <div class="row g-3">
                     <div class="col-md-5">
-                        <label class="form-label">ຊື່ພໍ່ແມ່</label>
+                        <label class="form-label">ຊື່ພໍ່ແມ່ <span class="required-star">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-person-heart"></i></span>
-                            <input type="text" class="form-control" name="parents_name" value="{{ old('parents_name') }}" placeholder="ຊື່ພໍ່ ແລະ ແມ່">
+                            <input type="text" class="form-control @error('parents_name') is-invalid @enderror"
+                                   name="parents_name" value="{{ old('parents_name') }}" placeholder="ຊື່ພໍ່ ແລະ ແມ່" required>
+                            @error('parents_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
                     </div>
                     <div class="col-md-5">
@@ -939,6 +952,40 @@
 @push('scripts')
 <script>
     const oldChildren = @json(old('children', []));
+
+    // ===== Age calculation from birthdate =====
+    function calcAge(dateStr) {
+        if (!dateStr) return null;
+        const dob = new Date(dateStr);
+        if (isNaN(dob.getTime())) return null;
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+        return age >= 0 ? age : null;
+    }
+
+    function updateDobAge() {
+        const dobInput = document.querySelector('input[name="dob"]');
+        const badge = document.getElementById('dobAgeBadge');
+        if (!dobInput || !badge) return;
+        const age = calcAge(dobInput.value);
+        if (age !== null) {
+            badge.textContent = 'ອາຍຸ ' + age + ' ປີ';
+            badge.style.display = 'inline-block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    function updateChildAge(input, dateStr) {
+        const col = input.closest('div');
+        const el = col ? col.querySelector('.child-age') : null;
+        if (!el) return;
+        const age = calcAge(dateStr);
+        el.textContent = age !== null ? 'ອາຍຸ ' + age + ' ປີ' : '';
+    }
+
     // ===== Load Districts via AJAX =====
     function loadDistricts(provinceId, targetSelector, selectedId = null) {
         const $select = $(targetSelector);
@@ -1037,6 +1084,7 @@
                     </div>
                     <div class="col-md-2">
                         <input type="text" class="form-control child-dob" name="children[${i}][dob]" placeholder="DD/MM/YYYY" autocomplete="off">
+                        <small class="child-age d-block mt-1 fw-semibold" style="color:#4338ca;"></small>
                     </div>
                     <div class="col-md-2">
                         <select class="form-select" name="children[${i}][gender]">
@@ -1057,6 +1105,9 @@
             altInput: true,
             altFormat: 'd/m/Y',
             allowInput: true,
+            onChange: function (selectedDates, dateStr, instance) {
+                updateChildAge(instance.input, dateStr);
+            },
         });
     }
 document.addEventListener('DOMContentLoaded', function () {
@@ -1068,6 +1119,13 @@ document.addEventListener('DOMContentLoaded', function () {
         altFormat: 'd/m/Y',
         allowInput: true,
     });
+
+    // ===== Auto-calculate age when DOB changes =====
+    const dobInput = document.querySelector('input[name="dob"]');
+    if (dobInput && dobInput._flatpickr) {
+        dobInput._flatpickr.config.onChange.push(updateDobAge);
+    }
+    updateDobAge();
 
     // ===== Select2 init (Bootstrap 5 theme) =====
     $('.select2').select2({
@@ -1110,7 +1168,7 @@ document.addEventListener('DOMContentLoaded', function () {
         $(`[name="children[${i}][last_name]"]`).val(child.last_name ?? '');
         const dobEl = document.querySelector(`[name="children[${i}][dob]"]`);
         if (dobEl && dobEl._flatpickr && child.dob) {
-            dobEl._flatpickr.setDate(child.dob, false);
+            dobEl._flatpickr.setDate(child.dob, true);
         }
         $(`[name="children[${i}][gender]"]`).val(child.gender ?? '');
         $(`[name="children[${i}][note]"]`).val(child.note ?? '');
